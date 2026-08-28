@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>لوحة التحكم</title>
+
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css"> <!-- fontawesome css file -->
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css"> <!-- bootstrap css min file -->
+    <link rel="stylesheet" href="/css/main.css">
+
+</head>
+
+
+
+<body>
+    <!-- sidebar -->
+    <%- include('../views/components/sidebar.ejs') %>
+
+        <main class="main-content">
+
+            <% if (!openShift) { %>
+                <form action="/openNewShift" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-primary">ابدأ يوم جديد</button>
+                </form>
+            <% } %>
+        </main>
+
+
+
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script> <!-- bootstrap js min.js -->
+        <script src="/js/main.js"></script>
+</body>
+
+</html>

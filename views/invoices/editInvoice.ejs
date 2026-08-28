@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= page %>
+    </title>
+
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/addProduct.css">
+</head>
+
+<body>
+    <%- include('../../views/components/sidebar.ejs') %>
+
+        <main class="main-content">
+            <div class="form-card mb-4" style="margin-top: 30px;">
+                <div class="form-header">
+                    <h3>تعديل فاتورة</h3>
+
+                    <a href="/inventory" class="btn-back">
+                        <i class="fa-solid fa-arrow-right"></i>
+                        رجوع
+                    </a>
+                </div>
+
+                <div id="formMessages" class="formMessages"></div>
+
+                <div class="tab-content">
+
+                    <div class="tab-pane fade show active" role="tabpanel" aria-labelledby="regular-tab">
+                        <form id="invoiceForm" action="/updateInvoice/<%= shift._id %>/<%= invoice._id %>"
+                            method="post">
+                            <div class="row g-3">
+
+                                <div class="col-md-3">
+                                    <label class="form-label">رقم الفاتورة</label>
+                                    <input type="text" class="custom-input" name="invoiceNo"
+                                        value="<%= invoice.invoiceNo %>">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">رقم فاتورة المورد</label>
+                                    <input type="text" name="supplierInvoiceNo" class="custom-input"
+                                        placeholder="رقم فاتورة المورد" value="<%= invoice.supplierInvoiceNo %>">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">المورد</label>
+                                    <select name="supplier" class="custom-input">
+                                        <% supplier.forEach(supp=> { %>
+                                            <option style="color: black;" value="<%= supp._id %>" <%=invoice.supplier &&
+                                                invoice.supplier._id.toString()===supp._id.toString() ? 'selected' : ''
+                                                %>>
+                                                <%= supp.name %>
+                                            </option>
+                                            <% }) %>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">نوع الفاتورة</label>
+                                    <input type="text" id="invoiceType" class="custom-input"
+                                        value="<%= invoice.invoiceType %>" readonly>
+                                </div>
+
+                                <div class="col-md-4 commissionFields" style="display:none;">
+                                    <label class="form-label">تكلفة النقل</label>
+                                    <input type="number" name="transportCost" class="custom-input" step="0.01"
+                                        value="<%= invoice.transportCost %>" placeholder="أدخل تكلفة النقل">
+                                </div>
+
+                                <div class="col-md-4 commissionFields" style="display:none;">
+                                    <label class="form-label">مسحوبات</label>
+                                    <select name="taken" id="taken" class="custom-input">
+                                        <option style="color: black;">لا يوجد</option>
+                                        <option style="color: black;" value="بضاعة" <% if (invoice.taken === 'بضاعة') { %>selected<% } %>>بضاعة</option>
+                                        <option style="color: black;" value="نقدي" <% if (invoice.taken === 'نقدي') { %>selected<% } %>>نقدي</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4 commissionFields" style="display:none;">
+                                    <label class="form-label">قيمة المسحوبات</label>
+                                    <input type="number" step="0.01" name="takenVal" class="custom-input" value="<%= invoice.takenVal %>"
+                                        placeholder="أدخل قيمة المسحوبات">
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">ملاحظات (اختياري)</label>
+                                    <textarea rows="5" class="custom-input textarea" name="notes" value="<%= invoice.notes %>" placeholder="اكتب أي ملاحظات"><%= invoice.notes %></textarea>
+                                </div>
+
+
+
+
+                                <div class="col-12">
+                                    <button type="submit" class="save-btn action-btn primary">حفط التعديلات</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+
+                </div>
+            </div>
+        </main>
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="/js/main.js"></script>
+        <script>
+            function showToast() {
+                window.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+                const t = document.getElementById('formMessages');
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 3000);
+            }
+
+            const form = document.getElementById('invoiceForm');
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const messagesDiv = document.getElementById('formMessages');
+                messagesDiv.innerHTML = '';
+
+                const fd = new FormData(form);
+                const payload = {};
+                fd.forEach((v, k) => payload[k] = v);
+
+                try {
+                    const res = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    const data = await res.json();
+                    if (!data.success) {
+                        messagesDiv.innerHTML = data.msg || data.message || 'حدث خطأ';
+                        showToast();
+                        return;
+                    }
+                    window.location.href = data.redirect;
+                } catch (err) {
+                    console.error("FRONT ERROR:", err);
+                    messagesDiv.innerHTML = err.message;
+                    showToast();
+                }
+            });
+
+            const invoiceType = document.getElementById("invoiceType");
+            const commissionFields = document.querySelectorAll(".commissionFields");
+            console.log(commissionFields);
+            const transportInput = document.querySelector('[name="transportCost"]');
+
+            function toggleTransport() {
+                commissionFields.forEach(field => {
+                    field.style.display =
+                        invoiceType.value === "كمسيون" ? "block" : "none";
+                });
+            }
+
+            invoiceType.addEventListener("change", toggleTransport);
+
+            // مهم جداً
+            toggleTransport();
+
+
+
+
+        </script>
+</body>
+
+</html>

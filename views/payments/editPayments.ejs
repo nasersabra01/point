@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>
+        <%= page %>
+    </title>
+
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+
+    <style>
+        .payment-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 30px;
+            margin-top: 20px;
+        }
+
+        .bank-fields {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, .02);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 18px;
+        }
+
+        textarea.custom-input {
+            min-height: 120px;
+            padding-top: 15px;
+            resize: none;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('../../views/components/sidebar.ejs') %>
+
+        <main class="main-content" style="margin-top:20px">
+
+            <div class="page-actions toolbar">
+                <h2>
+                    <%= page %>
+                </h2>
+
+                <a href="/payments" class="action-btn secondary">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    رجوع
+                </a>
+            </div>
+
+            <div id="formMessages" class="formMessages"></div>
+
+            <div class="payment-card">
+                <form action="/updatePayment/<%= payment._id %>" method="POST"  id="editPaymentForm">
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label">تاريخ الدفعة</label>
+                            <input type="date" name="paymentDate" class="custom-input"
+                                value="<%= payment.day.startTime.toISOString().split('T')[0] %>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">المورد</label>
+
+                            <select name="supplier" class="custom-input" required>
+                                <option style="color:black;" value="">اختر المورد</option>
+
+                                <% suppliers.forEach(supplier=> { %>
+                                    <option style="color:black;" value="<%= supplier._id %>"
+                                        <%=String(payment.supplier._id || payment.supplier)===String(supplier._id)
+                                        ? 'selected' : '' %>>
+
+                                        <%= supplier.name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">المبلغ</label>
+                            <input type="number" name="amount" class="custom-input" value="<%= payment.amount %>">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">طريقة الدفع</label>
+                            <select name="paymentMethod" id="paymentMethod" class="custom-input" required>
+                                <option style="color: black;" value="">اختر طريقة الدفع</option>
+
+                                <option value="cash" style="color: black;" <%=payment.paymentMethod==='cash'
+                                    ? 'selected' : '' %>>
+                                    كاش
+                                </option>
+
+                                <option value="bank_transfer" style="color: black;"
+                                    <%=payment.paymentMethod==='bank_transfer' ? 'selected' : '' %>>
+                                    تحويل بنكي
+                                </option>
+
+                                <option value="trans" style="color: black;" <%=payment.paymentMethod==='trans'
+                                    ? 'selected' : '' %>>
+                                    نقل
+                                </option>
+
+                                <option value="staf" style="color: black;" <%=payment.paymentMethod==='staf'
+                                    ? 'selected' : '' %>>
+                                    بضاعة
+                                </option>
+
+                                <option value="other" style="color: black;" <%=payment.paymentMethod==='other'
+                                    ? 'selected' : '' %>>
+                                    أخرى
+                                </option>
+                            </select>
+                        </div>
+
+                        <div id="bankFields" class="bank-fields">
+                            <div class="section-title">بيانات التحويل البنكي</div>
+
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label">اسم الحساب المرسل</label>
+                                    <input type="text" name="senderAccountName" class="custom-input"
+                                        value="<%= payment.senderAccountName || '' %>">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">نوع الحساب المرسل</label>
+                                    <select name="senderAccountType" class="custom-input">
+                                        <option value="">اختر</option>
+
+                                        <option <%=payment.senderAccountType==='بنك فلسطين' ? 'selected' : '' %>>
+                                            بنك فلسطين
+                                        </option>
+
+                                        <option <%=payment.senderAccountType==='بنك القدس' ? 'selected' : '' %>>
+                                            بنك القدس
+                                        </option>
+
+                                        <option <%=payment.senderAccountType==='البنك الإسلامي العربي' ? 'selected' : ''
+                                            %>>
+                                            البنك الإسلامي العربي
+                                        </option>
+
+                                        <option <%=payment.senderAccountType==='محفظة جوال بي' ? 'selected' : '' %>>
+                                            محفظة جوال بي
+                                        </option>
+
+                                        <option <%=payment.senderAccountType==='محفظة بال بي' ? 'selected' : '' %>>
+                                            محفظة بال بي
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">اسم الحساب المستقبل</label>
+                                    <input type="text" name="receiverAccountName" class="custom-input"
+                                        value="<%= payment.receiverAccountName || '' %>">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">نوع الحساب المستقبل</label>
+                                    <select name="receiverAccountType" class="custom-input">
+                                        <option value="">اختر</option>
+
+                                        <option <%=payment.receiverAccountType==='بنك فلسطين' ? 'selected' : '' %>>
+                                            بنك فلسطين
+                                        </option>
+
+                                        <option <%=payment.receiverAccountType==='بنك القدس' ? 'selected' : '' %>>
+                                            بنك القدس
+                                        </option>
+
+                                        <option <%=payment.receiverAccountType==='البنك الإسلامي العربي' ? 'selected'
+                                            : '' %>>
+                                            البنك الإسلامي العربي
+                                        </option>
+                                        <option <%=payment.receiverAccountType==='البنك الإسلامي الفلسطيني' ? 'selected'
+                                            : '' %>>
+                                            البنك الإسلامي الفلسطيني
+                                        </option>
+
+                                        <option <%=payment.receiverAccountType==='محفظة جوال بي' ? 'selected' : '' %>>
+                                            محفظة جوال بي
+                                        </option>
+
+                                        <option <%=payment.receiverAccountType==='محفظة بال بي' ? 'selected' : '' %>>
+                                            محفظة بال بي
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="form-label">ملاحظات</label>
+                            <textarea name="notes" class="custom-input"><%= payment.notes || '' %></textarea>
+                        </div>
+
+                        <div class="mt-4 d-flex justify-content-end">
+                            <button type="submit" class="action-btn primary">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                تعديل الدفعة
+                            </button>
+                        </div>
+
+                </form>
+            </div>
+
+        </main>
+
+        <script>
+            function showToast() {
+    window.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+
+    const t = document.getElementById('formMessages');
+    if (!t) return;
+
+    t.classList.add('show');
+
+    setTimeout(() => {
+        t.classList.remove('show');
+    }, 3000);
+}
+            const paymentMethod = document.getElementById('paymentMethod');
+            const bankFields = document.getElementById('bankFields');
+
+            paymentMethod.addEventListener('change', function () {
+                if (this.value === 'bank_transfer') {
+                    bankFields.style.display = 'block';
+                } else {
+                    bankFields.style.display = 'none';
+                }
+            });
+
+            const form = document.getElementById('editPaymentForm');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const messagesDiv = document.getElementById('formMessages');
+                messagesDiv.innerHTML = '';
+
+                const fd = new FormData(form);
+                const payload = {};
+                fd.forEach((v, k) => payload[k] = v);
+
+                try {
+                    const res = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await res.json();
+
+                    if (!data.success) {
+                        messagesDiv.innerHTML = data.msg;
+                        showToast();
+                        return;
+                    }
+
+                    messagesDiv.innerHTML = data.msg;
+                    showToast();
+
+                    setTimeout(() => {
+                        window.location.href = data.redirect;
+                    }, 1000);
+
+                } catch (error) {
+                    console.log(error);
+                    messagesDiv.innerHTML = 'حدث خطأ';
+                    showToast();
+                }
+            });
+
+        </script>
+
+</body>
+
+</html>

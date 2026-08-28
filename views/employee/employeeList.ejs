@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= page %>
+    </title>
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+
+<body>
+    <%- include('../../views/components/sidebar.ejs') %>
+        <main class="main-content" style="margin-top: 20px">
+            <div class="page-actions toolbar d-flex justify-content-between align-items-center">
+                <h2>
+                    <%= page %>
+                </h2>
+                <div class="d-flex justify-content-between" >
+                    <a href="/addEmPage" class="action-btn primary">
+                        <i class="fa-solid fa-circle-plus"></i>
+                        إضافة عامل
+                    </a>
+                </div>
+            </div>
+
+            <div id="formMessages" class="formMessages" style="background-color: green;"></div>
+
+            <div class="orders-card">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>اسم</th>
+                            <th>رقم الهاتف</th>
+                            <th>الراتب اليومي</th>
+                            <th>ملاحظات</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (employees?.length> 0) { %>
+                            <% employees.forEach((supplier, index)=> { %>
+                                <tr style="text-align: center;">
+                                    <td style="color:var(--blue);font-weight:600">
+                                        <%= index + 1 %>
+                                    </td>
+                                    <td>
+                                        <div style="font-size:13px;font-weight:600">
+                                            <%= supplier.name %>
+                                        </div>
+                                    </td>
+                                    <td style="color:var(--text-muted)">
+                                        <%= supplier.phone %>
+                                    </td>
+                                    <td style="color:var(--text-muted)">
+                                        <%= supplier.dailyWage.toFixed(2) %> ₪
+                                    </td>
+                                    <td style="color:var(--text-muted)">
+                                        <%= supplier.notes || '-' %>
+                                    </td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <a href="/getEditEmployeePage/<%= supplier._id %>"
+                                                class="btn-icon btn-icon--assent" title="تعديل">
+                                                <i class="fa-solid fa-pen"></i>
+                                            </a>
+
+                                            <form action="/deleteEmployee/<%= supplier._id %>" method="post"
+                                                class="d-inline"
+                                                onsubmit="return confirm('هل أنت متأكد من حذف هذا العامل')">
+                                                <button class="btn-icon btn-icon--red" title="حذف ">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="7" style="text-align: center; color: #8e8c8c;">
+                                                لا توجد عاملين مسجلة حالياً
+                                            </td>
+                                        </tr>
+                                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="/js/main.js"></script>
+
+        <script>
+            function showToast(message) {
+                window.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+                const messagesDiv = document.getElementById('formMessages');
+                messagesDiv.innerHTML = message;
+                messagesDiv.classList.add('show');
+                setTimeout(() => messagesDiv.classList.remove('show'), 1500);
+            }
+
+            // Handle delete requests
+            document.querySelectorAll('form[action*="/deleteSupplier/"]').forEach(form => {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    try {
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            showToast(result.message);
+                            setTimeout(() => {
+                                window.location.href = result.redirect;
+                            }, 1000);
+                        } else {
+                            showToast(result.message);
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showToast('حدث خطأ في الحذف');
+                    }
+                });
+            });
+        </script>
+
+        <% if (msg) { %>
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    showToast("<%= msg %>");
+                });
+            </script>
+            <% } %>
+</body>
+
+</html>

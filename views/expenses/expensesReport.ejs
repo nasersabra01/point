@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= page %>
+    </title>
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+
+<body>
+    <%- include('../../views/components/sidebar.ejs') %>
+        <main class="main-content" style="margin-top: 20px">
+            <div class="page-actions toolbar d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h2>مصاريف عامة</h2>
+                </div>
+
+                <form class="d-flex gap-2 flex-wrap" action="/expensesReportPdf" method="get">
+                    <input type="hidden" name="startDate" value="<%= selectedStartDate %>" />
+                    <input type="hidden" name="endDate" value="<%= selectedEndDate %>" />
+                    <button type="submit" class="action-btn primary">تقرير مالي <i class="fa-solid fa-file-pdf"></i></button>
+                </form>
+
+
+            </div>
+
+            <div id="formMessages" class="formMessages" style="background-color: green;"></div>
+
+
+
+
+            <div class="page-actions toolbar d-flex justify-content-between align-items-center flex-wrap gap-3"
+                style="background: #11182d51;;width: 100%;">
+
+
+                <form class="d-flex gap-2 flex-wrap" action="/expensesReport" method="get" style="width: 60%;">
+                    <div class="d-flex gap-2 align-items-center">
+                        <label for="startDate" style="margin:0;">من</label>
+                        <input type="date" name="startDate" id="startDate" value="<%= selectedStartDate %>"
+                            class="custom-input" />
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <label for="endDate" style="margin:0;">إلى</label>
+                        <input type="date" name="endDate" id="endDate" value="<%= selectedEndDate %>"
+                            class="custom-input" />
+                    </div>
+                    <button type="submit" class="action-btn primary">عرض</button>
+                </form>
+                <% const types=(expenses || []).map(e=> e.expType).filter(Boolean);
+                    const uniqueTypes = [...new Set(types)]; %>
+                    <div class="d-flex gap-2 align-items-center" style="width: 35%;">
+                        <label for="filterType" style="width: 150px;">نوع المصروف</label>
+                        <select id="filterType" class="custom-input">
+                            <option value="">كل الأنواع</option>
+                            <% uniqueTypes.forEach(t=> { %>
+                                <option style="color: black;" value="<%= t %>">
+                                    <%= t %>
+                                </option>
+                                <% }) %>
+                        </select>
+                    </div>
+
+
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div class="orders-card">
+                <div class="table-meta" style="margin-bottom: 10px;">
+                    <strong>إجمالي المصاريف:</strong>
+                    <span id="totalAmountDisplay">
+                        <%= totalAmount.toFixed(2) %>
+                    </span> ₪
+                </div>
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>اليوم</th>
+                            <th>الوقت</th>
+                            <th>نوع المصروف</th>
+                            <th>المبلغ</th>
+                            <th>ملاحظات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (expenses?.length> 0) { %>
+                            <% expenses.forEach((exp, index)=> { %>
+                                <tr data-exp-type="<%= exp.expType %>">
+                                    <td>
+                                        <%= index + 1 %>
+                                    </td>
+                                    <td>
+                                        <%= exp.day ? new Date(exp.day.startTime).toISOString().slice(0, 10) : '-' %>
+                                    </td>
+                                    <td>
+                                        <%= exp.day ? new Date(exp.day.startTime).toLocaleTimeString('en-GB') : '-' %>
+                                    </td>
+                                    <td>
+                                        <%= exp.expType %>
+                                    </td>
+                                    <td class="amount">
+                                        <%= exp.amount.toFixed(2) %> ₪
+                                    </td>
+                                    <td>
+                                        <%= exp.details || '-' %>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="6" style="text-align: center; color: #8e8c8c;">لا يوجد مصاريف
+                                                لهذه الفترة.</td>
+                                        </tr>
+                                        <% } %>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="4" style="text-align: right;">مجموع المصاريف للفترة</th>
+                            <th>
+                                <%= totalAmount.toFixed(2) %> ₪
+                            </th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </main>
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="/js/main.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const filterType = document.getElementById('filterType');
+                const totalDisplay = document.getElementById('totalAmountDisplay');
+                if (!filterType || !totalDisplay) return;
+                const rows = Array.from(document.querySelectorAll('.orders-table tbody tr[data-exp-type]'));
+
+                function computeVisibleTotal() {
+                    let sum = 0;
+                    rows.forEach(r => {
+                        if (r.style.display === 'none') return;
+                        const amountCell = r.querySelector('.amount');
+                        const amountText = amountCell ? amountCell.textContent : '';
+                        const num = parseFloat(amountText.replace(/[^0-9.-]+/g, '')) || 0;
+                        sum += num;
+                    });
+                    totalDisplay.textContent = sum.toFixed(2);
+                }
+
+                // initial compute (in case server total differs)
+                computeVisibleTotal();
+
+                filterType.addEventListener('change', () => {
+                    const val = filterType.value;
+                    rows.forEach(r => {
+                        if (!val) {
+                            r.style.display = '';
+                            return;
+                        }
+                        const t = r.dataset.expType || '';
+                        r.style.display = (t === val) ? '' : 'none';
+                    });
+                    computeVisibleTotal();
+                });
+            });
+        </script>
+
+        <% if (msg) { %>
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const messagesDiv = document.getElementById('formMessages');
+                    messagesDiv.innerHTML = "<%= msg %>";
+                    messagesDiv.classList.add('show');
+                    setTimeout(() => messagesDiv.classList.remove('show'), 1000);
+                });
+            </script>
+            <% } %>
+</body>
+
+</html>

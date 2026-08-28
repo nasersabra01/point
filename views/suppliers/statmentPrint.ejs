@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>كشف حساب المورد</title>
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+        }
+
+        body {
+            direction: rtl;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 30px;
+        }
+
+        .invoice {
+            max-width: 1400px;
+            margin: auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, .08);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .company h4 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .company p {
+            color: #777;
+            margin-bottom: 4px;
+        }
+
+        .invoice-title {
+            text-align: center;
+        }
+
+        .invoice-title h2 {
+            color: #220946;
+            margin-bottom: 10px;
+        }
+
+        .info-box {
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .info-box p {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #220946;
+            color: white;
+            padding: 14px;
+            text-align: center;
+        }
+
+        td {
+            border: 1px solid #ddd;
+            padding: 3px;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .summary {
+            width: 420px;
+            margin-right: auto;
+            margin-top: 30px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .summary-row.total {
+            font-size: 18px;
+            font-weight: bold;
+            color: #220946;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+        }
+
+        .backbtn {
+            width: 100px;
+            text-align: center;
+            text-decoration: none;
+            background-color: #1b043b;
+            color: white;
+            border-radius: 8px;
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            padding: 10px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .invoice {
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .backbtn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="/supplierPage/<%= supplier._id %>?tab=statement" class="backbtn">رجوع</a>
+
+    <div class="invoice">
+
+        <div class="header">
+            <div class="company">
+                <h4>شركة النصر (المتربيعي)</h4>
+                <p>لتجارة الخضروات والفواكه</p>
+            </div>
+
+            <div class="invoice-title">
+                <h2>كشف حساب المورد</h2>
+                <p><strong>المورد:</strong>
+                    <%= supplier.name %>
+                </p>
+            </div>
+
+            <div>
+                <p>التاريخ: <%= new Date().toLocaleDateString('ar-EG') %>
+                </p>
+                <p>الوقت: <%= new Date().toLocaleTimeString('ar-EG') %>
+                </p>
+            </div>
+        </div>
+
+        <div class="info-box d-flex">
+
+            <p><strong>رقم الهاتف:</strong>
+                <%= supplier.phone %>
+            </p>
+            <p><strong>الفترة:</strong> من <%= from || 'البداية' %> إلى <%= to || 'الآن' %>
+            </p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>التاريخ</th>
+                    <th>نوع الحركة</th>
+                    <th>مدين</th>
+                    <th>دائن</th>
+                    <th>البيان</th>
+                    <th>الرصيد</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <% if(statement.length> 0){ %>
+                    <% statement.forEach((item, i)=> { %>
+                        <tr>
+                            <td>
+                                <%= i + 1 %>
+                            </td>
+                            <td>
+                                <%= new Date(item.date).toLocaleDateString('ar-EG') %>
+                            </td>
+                        <td>
+                                        <%= item.type %> <br>
+                                        <span style="color: #6c757d;font-size: 9px;" ><%= item.invoice ? item.invoice.invoiceNo : '' %></span>
+                                    </td>
+                            <td>
+                                <%= item.debit> 0 ? item.debit.toFixed(2) + ' ₪' : '-' %>
+                            </td>
+                            <td>
+                                <%= item.credit> 0 ? item.credit.toFixed(2) + ' ₪' : '-' %>
+                            </td>
+                            <td>
+                                <% if(item.type.includes('فاتورة')) { %>
+
+
+                                    <table class="stat">
+                                        <% const inPr=[] %>
+                                            <% products.forEach(product=> { %>
+                                                <% if ( product.invoice && item.invoice && product.invoice.invoiceNo===item.invoice.invoiceNo ) { %>
+                                                    <% inPr.push(product) %>
+                                                <% } %>
+                                            <% }) %>
+                                            <% inPr.forEach(product=> { %>
+                                                <tr style="background-color: #eee;">
+                                                    <td>
+                                                        <%= product.productName %>
+                                                    </td>
+                                                    <td>
+                                                        <%= product.mainWeight.toFixed(2) %> <small
+                                                                style="color: #6c757d;font-size: 9px;">
+                                                                <%= product.unit %>
+                                                            </small>
+                                                    </td>
+                                                </tr>
+                                            <% }) %>
+                                    </table>
+
+
+
+
+                                    <% } %>
+                            </td>
+                            <td class="<%= item.balance >= 0 ? 'text-success' : 'text-danger' %>">
+                                <% if(item.balance>= 0){ %>
+                                    له <%= Math.abs(item.balance).toFixed(2) %> ₪
+                                        <% } else { %>
+                                            عليه <%= Math.abs(item.balance).toFixed(2) %> ₪
+                                                <% } %>
+                            </td>
+                        </tr>
+                        <% }) %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="6">لا توجد بيانات</td>
+                                </tr>
+                                <% } %>
+            </tbody>
+        </table>
+
+        <!-- <div class="summary">
+            <div class="summary-row">
+                <span>إجمالي المدين</span>
+                <span><%= totalDebit.toFixed(2) %> ₪</span>
+            </div>
+
+            <div class="summary-row">
+                <span>إجمالي الدائن</span>
+                <span><%= totalCredit.toFixed(2) %> ₪</span>
+            </div>
+
+            <div class="summary-row total">
+                <span>الرصيد النهائي</span>
+                <span>
+                    <%= statement.length ? statement[statement.length - 1].balance.toFixed(2) : '0.00' %> ₪
+                </span>
+            </div>
+        </div> -->
+
+    </div>
+    <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

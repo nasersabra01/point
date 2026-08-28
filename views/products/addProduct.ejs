@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= page %>
+    </title>
+
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/addProduct.css">
+</head>
+
+<body>
+    <%- include('../../views/components/sidebar.ejs') %>
+
+        <main class="main-content">
+            <div class="form-card" style="margin-top: 30px;">
+                <div class="form-header">
+                    <h3>إضافة صنف للفاتورة <%= invoice.invoiceNo %>
+                    </h3>
+
+                    <a href="/dayPage/<%= openShift._id %>" class="action-btn secondary">
+                        <i class="fa-solid fa-arrow-right"></i>
+                        رجوع
+                    </a>
+                </div>
+
+                <div id="formMessages" class="formMessages"></div>
+
+                <div class="tab-content">
+
+
+                    <div class="tab-pane fade show active" id="regularInvoice" role="tabpanel"
+                        aria-labelledby="regular-tab">
+                        <form id="myForm" action="/createProduct/<%= invoice._id %>" method="post">
+                            <div class="row g-3">
+
+                                <div class="col-md-3">
+                                    <label class="form-label">اسم الصنف<span class="req">*</span></label>
+                                    <input type="text" name="productName" class="custom-input" placeholder="اسم الصنف">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">الوحدة<span class="req">*</span></label>
+                                    <select name="unit" class="custom-input">
+                                        <option style="color: black;" value="كيلو">كيلو</option>
+                                        <option style="color: black;" value="شوال">شوال</option>
+                                        <option style="color: black;" value="بكسة">بكسة</option>
+                                        <option style="color: black;" value="ربطة">ربطة</option>
+                                        <option style="color: black;" value="كوم">كوم</option>
+                                        <option style="color: black;" value="كرتونة">كرتونة</option>
+                                        <option style="color: black;" value="أخرى">أخرى</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">الكمية<span class="req">*</span></label>
+                                    <input type="number" step="0.01" name="mainWeight" class="custom-input regular-calc"
+                                        placeholder="الكمية">
+                                </div>
+
+                                <% if (invoice.invoiceType==='شراء' ) { %>
+                                    <div class="col-md-3">
+                                        <label class="form-label">سعر الشراء<span class="req">*</span></label>
+                                        <input type="number" step="0.01" name="wholesalePrice"
+                                            class="custom-input regular-calc" placeholder="سعر الشراء">
+                                    </div>
+
+
+                                    <div class="col-md-12">
+                                        <label class="form-label">الإجمالي</label>
+                                        <input type="number" id="regularTotal" name="totalCost" class="custom-input"
+                                            readonly placeholder="0.00">
+                                    </div>
+                                    <% } %>
+
+
+                                        <% if (invoice.invoiceType==='كمسيون' ) { %>
+                                            <div class="col-md-3">
+                                                <label class="form-label">نسبة العمولة %</label>
+                                                <input type="number" id="commissionRate" value="6"
+                                                    class="custom-input commission-calc" step="0.01"
+                                                    name="commissionRate" placeholder="النسبة">
+                                            </div>
+
+                                            <% } %>
+
+                                                <div class="col-12">
+                                                    <label class="form-label">ملاحظات (اختياري)</label>
+                                                    <textarea rows="5" class="custom-input textarea" name="notes"
+                                                        placeholder="اكتب أي ملاحظات"></textarea>
+                                                </div>
+
+
+                                                <div class="col-12">
+                                                    <button type="submit" class="save-btn action-btn primary">حفظ
+                                                        الصنف</button>
+                                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+
+                </div>
+            </div>
+        </main>
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="/js/main.js"></script>
+        <script>
+            function showToast() {
+                window.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+                const t = document.getElementById('formMessages');
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 3000);
+            }
+
+            document.querySelectorAll('.regular-calc').forEach(el => {
+                el.addEventListener('input', calcRegular);
+            });
+
+
+            // Regular Invoice Calculation
+            function calcRegular() {
+                const qty = Number(document.querySelector('#myForm input[name="mainWeight"]').value) || 0;
+                const price = Number(document.querySelector('#myForm input[name="wholesalePrice"]').value) || 0;
+
+                const total = qty * price;
+
+                document.getElementById('regularTotal').value = total.toFixed(2);
+            }
+
+            myForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const messagesDiv = document.getElementById('formMessages');
+                messagesDiv.innerHTML = '';
+
+                const fd = new FormData(myForm);
+                const payload = {};
+                fd.forEach((v, k) => payload[k] = v);
+
+                try {
+                    const res = await fetch(myForm.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    const data = await res.json();
+                    if (!data.success) {
+                        messagesDiv.innerHTML = data.msg || data.message || 'حدث خطأ';
+                        showToast();
+                        return;
+                    }
+                    window.location.href = data.redirect;
+                } catch (err) {
+                    console.error(err);
+                    messagesDiv.innerHTML = 'حصل خطأ في الخادم';
+                    showToast();
+                }
+            });
+        </script>
+</body>
+
+</html>

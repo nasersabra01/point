@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= page %>
+    </title>
+
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css"> <!-- fontawesome css file -->
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css"> <!-- bootstrap css min file -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/addProduct.css">
+
+    <style>
+        .unt {
+            font-size: 10px;
+        }
+
+        .edit-sale-row {
+            transition: max-height 0.3s ease, opacity 0.25s ease, transform 0.25s ease;
+            overflow: hidden;
+            transform-origin: top;
+        }
+
+        .edit-sale-row[style*="display: none"] {
+            opacity: 0;
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin: 0;
+            border: 0;
+            pointer-events: none;
+            transform: translateY(-6px);
+        }
+
+        .edit-sale-row:not([style*="display: none"]) {
+            opacity: 1;
+            max-height: 220px;
+            transform: translateY(0);
+        }
+    </style>
+
+</head>
+
+
+
+<body>
+    <!-- sidebar -->
+    <%- include('../../views/components/sidebar.ejs') %>
+
+        <main class="main-content">
+
+            <div id="formMessages" class="formMessages">
+                <%= msg %>
+            </div>
+            <!-- Header -->
+            <div class="topbar">
+                <div class="topbar-title">
+                    <h1>كشف بيع - <%= product.productName %> - <%= product.invoice.name %>
+                    </h1>
+
+                </div>
+
+
+                <div class="d-flex gap-2">
+
+
+                    <% if (product.saleStatus==='open' ) { %>
+                        <form action="/closeSaleStatment/<%= product._id %>" method="post" style="width: 400px;"
+                            class="d-flex justify-content-between"
+                            onsubmit="return confirm('هل أنت متأكد من إغلاق الكشف؟')">
+                            <% if (product.remainingWeight> 0 ) { %>
+                                <div class="">
+                                    <select name="loseWeightStatus" id="" class="custom-input">
+                                        <option value="" style="color: black;" value="">حالة الوزن المتبقي: <span
+                                                class="req">
+                                                <%= product.remainingWeight.toFixed(2) %>
+                                                    <%= product.unit %>
+                                            </span></option>
+                                        <option value="exist" style="color: black;" value="بيع عادي">متواجد داخل المحل
+                                        </option>
+                                        <option value="lose" style="color: black;" value="كمسيون">تحديد كنقص</option>
+                                    </select>
+                                </div>
+                                <% } %>
+
+                                    <button class="action-btn danger">
+                                        <i class="bi bi-x-circle"></i>
+                                        إغلاق الكشف
+                                    </button>
+                        </form>
+                        <% } %>
+                            <% if (product.saleStatus==='closed' ) { %>
+                                <a href="/openSaleStatm/<%=  product._id %>" class="action-btn primary">
+                                    <i class="fa-solid fa-door-open"></i>
+                                    فتح الكشف
+                                </a>
+                                <% } %>
+
+
+                                    <a href="/productDetailsPage/<%=  product._id %>" class="action-btn primary">
+                                        <i class="fa-solid fa-eye"></i>
+                                        عرض التفاصيل
+                                    </a>
+                                    <a href="/dayPage/<%= openShift._id %>" class="action-btn secondary">
+                                        <i class="fa-solid fa-arrow-right"></i>
+                                        رجوع
+                                    </a>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="row g-1 mb-4">
+
+                <div class="col-xl-3 col-md-4">
+                    <div class="stat-card purple">
+                        <div class="stat-label">الوزن الأساسي</div>
+                        <div class="stat-value">
+                            <%= product.mainWeight.toFixed(2) %> <small class="unt">
+                                    <%= product.unit %>
+                                </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-4">
+                    <div class="stat-card amber">
+                        <div class="stat-label">الوزن المباع</div>
+                        <div class="stat-value" id="soledWeight">
+                            <%= product.soldWeight.toFixed(2) %> <small class="unt">
+                                    <%= product.unit %>
+                                </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-4">
+                    <div class="stat-card amber">
+                        <div class="stat-label">الوزن المتبقي</div>
+                        <div class="stat-value">
+                            <%= product.remainingWeight.toFixed(2) %> <small class="unt">
+                                    <%= product.unit %>
+                                </small>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- <div class="col-xl-2 col-md-4">
+                    <div class="stat-card green">
+                        <div class="stat-label">نسبة البيع</div>
+                        <div class="stat-value">
+                            <%= product.salePercentage %>%
+                        </div>
+                    </div>
+                </div> -->
+
+                <div class="col-xl-3 col-md-4">
+                    <div class="stat-card purple">
+                        <div class="stat-label">حالة الوزن</div>
+                        <div class="stat-value">
+                            <small>
+                                <%= product.weightStatus %> / <%= product.loseWeight.toFixed(2) %>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <% if (product.saleStatus==='open' ) { %>
+                <!-- Add Sale -->
+                <div class="chart-card mb-4">
+
+                    <div class="section-header">
+                        <span class="section-title">
+                            إضافة فاتورة بيع
+                        </span>
+                        <% if (invoice.invoiceType==='شراء' ) { %>
+                            <div class="action-btn secondary">
+                                <span>إجمالي تكلفة الوحدة: </span>
+                                <strong>
+                                    <%= product.purchaseData.wholesalePrice.toFixed(2) %>
+                                </strong> ₪
+                            </div>
+                            <% } %>
+                    </div>
+
+
+                    <form id="addStatmentForm" action="/addSaleStatment/<%= product._id %>" method="POST">
+
+                        <div class="row g-3">
+
+                            <div class="col-md-4">
+                                <label class="form-label">
+                                    اسم الزبون
+                                </label>
+
+                                <input type="text" name="customerName" class="custom-input" placeholder="اسم العميل">
+                            </div>
+
+                            <div class="col-md-2">
+                                <label class="form-label">
+                                    الكمية
+                                </label>
+
+                                <input type="number" step="0.01" id="quantity" name="quantity" class="custom-input">
+                            </div>
+
+                            <div class="col-md-2">
+                                <label class="form-label">
+                                    سعر الوحدة
+                                </label>
+
+                                <input type="number" step="0.01" id="price" name="price" class="custom-input">
+                            </div>
+
+                            <div class="col-md-2">
+                                <label class="form-label">
+                                    الإجمالي
+                                </label>
+
+                                <input type="text" id="total" readonly class="custom-input">
+                            </div>
+
+                            <div class="col-2">
+
+                                <button class="action-btn primary fff">
+                                    <i class="bi bi-plus-lg"></i>
+                                    اضافة
+                                </button>
+                            </div>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+                <% } %>
+
+                    <div class="orders-card">
+                        <table class="orders-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>اسم الزبون</th>
+                                    <th>ناريخ البيع</th>
+                                    <th>الوزن / العدد</th>
+                                    <th>سعر البيع</th>
+                                    <th>المجموع</th>
+                                    <% if (product.saleStatus==='open' ) { %>
+                                        <th>إجراءات</th>
+                                        <% } %>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (saleStatment.length> 0 ) { %>
+                                    <% (saleStatment).forEach((sale, i)=> { %>
+                                        <tr style="text-align: center;">
+                                            <td style="color:var(--blue);font-weight:600">
+                                                <%= i + 1 %>
+                                            </td>
+
+                                            
+                                            <td>
+                                                <div class="d-flex align-items-center justify-content-center">
+                                                    <div class="order-avatar"
+                                                        style="background:linear-gradient(135deg,#3B82F6,#8B5CF6)">
+                                                        <%= sale.customerName.charAt(0) %>
+                                                    </div>
+                                                    <div>
+                                                        <div style="font-size:13px;font-weight:600">
+                                                            <%= sale.customerName %>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <% if (sale.day && sale.day.startTime) { %>
+                                                    <%= dayjs(sale.day.startTime).format('D/M/YYYY') %>
+                                                    <%= dayjs(sale.day.startTime).format('dddd') %>
+                                                    <% } else { %>
+                                                        -
+                                                        <% } %>
+                                            </td>
+                                            <td style="color:var(--text-muted)">
+                                                <%= sale.quantity %>
+                                            </td>
+                                            <td style="color:var(--text-muted)">
+                                                <%= sale.price %>
+                                            </td>
+                                            <td style="color:var(--text-muted)">
+                                                <%= sale.total %>
+                                            </td>
+                                            <% if (product.saleStatus==='open' ) { %>
+                                                <td>
+                                                    <div class="action-btns">
+                                                        <button type="button" class="btn-icon btn-icon--blue"
+                                                            onclick="toggleEditForm('edit-sale-<%= sale._id %>')">
+                                                            <i class="fa-solid fa-pen"></i>
+                                                        </button>
+
+                                                        <form
+                                                            action="/deleteSaleStatment/<%= sale._id %>?productId=<%= product._id %>"
+                                                            method="POST" style="display:inline"
+                                                            onsubmit="return confirm('هل أنت متأكد من حذف الفاتورة؟')">
+                                                            <button class="btn-icon btn-icon--red delete">
+                                                                <i class="fa-solid fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                                <% } %>
+
+                                        </tr>
+
+                                        <tr id="edit-sale-<%= sale._id %>" class="edit-sale-row" style="display:none;">
+                                            <td colspan="7">
+                                                <div class="p-3 rounded-3 border"
+                                                    style="background:linear-gradient(135deg,#0a0d11 0%, #1f2937 100%); border-color:#475569; color:#f8fafc;">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <strong>تعديل البيع</strong>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                            onclick="toggleEditForm('edit-sale-<%= sale._id %>')">
+                                                            <i class="fa-solid fa-xmark"></i> إغلاق
+                                                        </button>
+                                                    </div>
+                                                    <form class="edit-sale-form row g-2 align-items-end"
+                                                        action="/editSaleStatment/<%= sale._id %>" method="POST">
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">اسم الزبون</label>
+                                                            <input type="text" name="customerName" class="custom-input"
+                                                                value="<%= sale.customerName %>">
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <label class="form-label">الكمية</label>
+                                                            <input type="number" step="0.01" name="quantity"
+                                                                class="custom-input" value="<%= sale.quantity %>">
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <label class="form-label">سعر الوحدة</label>
+                                                            <input type="number" step="0.01" name="price"
+                                                                class="custom-input" value="<%= sale.price %>">
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <label class="form-label">الإجمالي</label>
+                                                            <input type="text" class="custom-input" value="<%= sale.total %>"
+                                                                disabled>
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <button class="action-btn primary">حفظ التعديلات...</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <% }) %>
+
+                                            <tr class="secondary suma">
+                                                <td>#</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center justify-content-center">
+                                                        <div class="order-avatar"
+                                                            style="background:linear-gradient(135deg,#3B82F6,#8B5CF6)">
+                                                            م
+                                                        </div>
+                                                        <div>
+                                                            <div style="font-size:13px;font-weight:600">
+                                                                مجموع
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td></td>
+                                                <td>
+                                                    <%= product.soldWeight.toFixed(2) %>
+                                                        <%= product.unit %>
+                                                </td>
+                                                <td>
+                                                    <%= product.avarageSePrice.toFixed(2) %> ₪
+                                                </td>
+                                                <td>
+                                                    <%= product.sales.toFixed(2) %> ₪
+                                                </td>
+
+                                            </tr>
+                                            <% } %>
+
+                                                <% if (saleStatment.length <=0 ) { %>
+                                                    <tr>
+                                                        <td colspan="6" style="color: #8e8c8c;">
+                                                            لم يتم إضافة أي فاتورة بيع بعد.
+                                                        </td>
+                                                    </tr>
+
+                                                    <% } %>
+
+                            </tbody>
+                        </table>
+                    </div>
+
+        </main>
+
+
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script> <!-- bootstrap js min.js -->
+        <script src="/js/main.js"></script>
+
+
+
+
+        <script>
+            function toggleEditForm(id) {
+                const row = document.getElementById(id);
+                if (!row) return;
+
+                const isVisible = row.style.display !== 'none';
+
+                document.querySelectorAll('.edit-sale-row').forEach((item) => {
+                    item.style.display = 'none';
+                });
+
+                if (!isVisible) {
+                    row.style.display = '';
+                }
+            }
+
+            const msg = `<%= msg || '' %>`;
+            function showToast() {
+                window.scrollTo({ left: 0, top: 0, behavior: `smooth` });
+                const t = document.getElementById('formMessages');
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 2000);
+            }
+
+            const form = document.getElementById('addStatmentForm');
+            const messagesDiv = document.getElementById('formMessages');
+            const total = document.getElementById('total');
+            const editForms = document.querySelectorAll('.edit-sale-form');
+            // const soledWeight = document.getElementById('soledWeight');
+            // const soledWeightVal = document.getElementById('soledWeight').textContent;
+            // console.log(+soledWeightVal)
+
+            function calcTotal() {
+                const q = Number(document.querySelector('input[name="quantity"]').value) || 0;
+                const p = Number(document.querySelector('input[name="price"]').value) || 0;
+                total.value = (q * p).toFixed(2);
+            }
+
+            ['quantity', 'price'].forEach(name => {
+                const el = document.querySelector(`input[name="${name}"]`);
+                if (el) el.addEventListener('input', calcTotal);
+            });
+
+            async function submitForm(formElement) {
+                if (!formElement) return;
+
+                messagesDiv.innerHTML = '';
+
+                const fd = new FormData(formElement);
+                const payload = {};
+                fd.forEach((v, k) => payload[k] = v);
+
+                try {
+                    const res = await fetch(formElement.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    const data = await res.json();
+
+                    if (!data.success) {
+                        messagesDiv.innerHTML = data.msg;
+                        showToast();
+                        return false;
+                    }
+
+                    window.location.href = data.redirect;
+                    return true;
+
+                } catch (err) {
+                    console.error(err);
+                    messagesDiv.innerHTML = `حصل خطأ في الخادم`;
+                    showToast();
+                    return false;
+                }
+            }
+
+            // إرسال الفورم عبر AJAX
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await submitForm(form);
+                });
+            }
+
+            editForms.forEach((editForm) => {
+                editForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await submitForm(editForm);
+                });
+            });
+
+            if (msg.trim() !== '') {
+                showToast();
+            }
+        </script>
+
+
+</body>
+
+</html>

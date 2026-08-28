@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>
+        <%= page %>
+    </title>
+
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+
+    <style>
+        .payment-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 30px;
+            margin-top: 20px;
+        }
+
+        .bank-fields {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, .02);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 18px;
+        }
+
+        textarea.custom-input {
+            min-height: 120px;
+            padding-top: 15px;
+            resize: none;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('../../views/components/sidebar.ejs') %>
+
+        <main class="main-content" style="margin-top:20px">
+
+            <div class="page-actions toolbar">
+                <h2>
+                    <%= page %>
+                </h2>
+
+                <a href="/payments" class="action-btn secondary">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    رجوع
+                </a>
+            </div>
+
+            <div id="formMessages" class="formMessages"></div>
+
+            <div class="payment-card">
+                <form action="/createPayment" method="POST">
+
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <label class="form-label">المورد</label>
+                            <select name="supplier" class="custom-input" required>
+                                <option style="color: black;" value="">اختر المورد</option>
+                                <% suppliers.forEach(supplier=> { %>
+                                    <option style="color: black;" value="<%= supplier._id %>">
+                                        <%= supplier.name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">المبلغ</label>
+                            <input type="number" name="amount" step="0.01" class="custom-input" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">طريقة الدفع</label>
+                            <select name="paymentMethod" id="paymentMethod" class="custom-input" required>
+                                <option style="color: black;" value="">اختر طريقة الدفع</option>
+                                <option style="color: black;" value="cash">كاش</option>
+                                <option style="color: black;" value="bank_transfer">تحويل بنكي</option>
+                                <option style="color: black;" value="trans">نقل</option>
+                                <option style="color: black;" value="staf">بضاعة</option>
+                                <option style="color: black;" value="other">أخرى</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="bankFields" class="bank-fields">
+                        <div class="section-title">بيانات التحويل البنكي</div>
+
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label">اسم الحساب المرسل</label>
+                                <input type="text" name="senderAccountName" class="custom-input">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">نوع الحساب المرسل</label>
+                                <select name="senderAccountType" class="custom-input">
+                                    <option style="color: black;" value="">اختر</option>
+                                    <option style="color: black;">بنك فلسطين</option>
+                                    <option style="color: black;">بنك القدس</option>
+                                    <option style="color: black;">البنك الإسلامي العربي</option>
+                                    <option style="color: black;">البنك الإسلامي الفلسطيني</option>
+                                    <option style="color: black;">محفظة جوال بي</option>
+                                    <option style="color: black;">محفظة بال بي</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">اسم الحساب المستقبل</label>
+                                <input type="text" name="receiverAccountName" class="custom-input">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">نوع الحساب المستقبل</label>
+                                <select name="receiverAccountType" class="custom-input">
+                                    <option style="color: black;" value="">اختر</option>
+                                    <option style="color: black;">بنك فلسطين</option>
+                                    <option style="color: black;">بنك القدس</option>
+                                    <option style="color: black;">البنك الإسلامي العربي</option>
+                                    <option style="color: black;">البنك الإسلامي الفلسطيني</option>
+                                    <option style="color: black;">محفظة جوال بي</option>
+                                    <option style="color: black;">محفظة بال بي</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="form-label">ملاحظات</label>
+                        <textarea name="notes" class="custom-input"></textarea>
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-end">
+                        <button type="submit" class="action-btn primary">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            حفظ الدفعة
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+
+        </main>
+
+        <script>
+            const paymentMethod = document.getElementById('paymentMethod');
+            const bankFields = document.getElementById('bankFields');
+
+            paymentMethod.addEventListener('change', function () {
+                if (this.value === 'bank_transfer') {
+                    bankFields.style.display = 'block';
+                } else {
+                    bankFields.style.display = 'none';
+                }
+            });
+
+        </script>
+
+</body>
+
+</html>

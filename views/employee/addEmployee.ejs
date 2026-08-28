@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= page %>
+    </title>
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/addProduct.css">
+</head>
+
+<body>
+    <%- include('../../views/components/sidebar.ejs') %>
+        <main class="main-content">
+            <div class="form-card" style=" margin-top: 30px;">
+                <div class="form-header">
+                    <h3>إضافة عامل جديد</h3>
+
+                    <a href="/employees" class="action-btn secondary">
+                        <i class="bi bi-arrow-right"></i>
+                        رجوع
+                    </a>
+                </div>
+
+                <div id="formMessages" class="formMessages"></div>
+                <form id="addSupplierForm" action="/createEmployee">
+                    <div class="row g-3">
+
+                        <div class="col-md-4">
+                            <label class="form-label">الاسم<span class="req">*</span></label>
+                            <input type="text" name="name" placeholder="احمد حسن" class="custom-input" id="">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">رقم الهاتف</label>
+                            <input type="tel" name="phone" placeholder="رقم الهاتف" class="custom-input" id="">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">الراتب اليومي <span class="req">*</span></label>
+                            <input type="number" name="dailyWage" step="0.01" class="custom-input" id="">
+                        </div>
+
+
+                        <div class="col-12">
+                            <label class="form-label">ملاحظات (اختياري)</label>
+                            <textarea rows="5" class="custom-input textarea" name="notes"
+                                placeholder="اكتب أي ملاحظات"></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="submit" class="save-btn action-btn primary">
+                                إضافة 
+                            </button>
+                        </div>
+
+                    </div>
+
+                </form>
+            </div>
+        </main>
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="/js/main.js"></script>
+
+        <script>
+            function showToast() {
+                window.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+                const t = document.getElementById('formMessages');
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 3000);
+            }
+
+            const form = document.getElementById('addSupplierForm');
+            const messagesDiv = document.getElementById('formMessages');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                messagesDiv.innerHTML = '';
+
+                const fd = new FormData(form);
+                const payload = {};
+                fd.forEach((v, k) => payload[k] = v);
+
+                try {
+                    const res = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    const data = await res.json();
+
+                    if (!data.success) {
+                        messagesDiv.innerHTML = data.message;
+                        showToast();
+                        return;
+                    }
+
+                    window.location.href = data.redirect;
+
+                } catch (err) {
+                    console.error(err);
+                    messagesDiv.innerHTML = 'حدث خطأ في الخادم';
+                    showToast();
+                }
+            });
+        </script>
+</body>
+
+</html>

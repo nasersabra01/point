@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>
+        <%= page %>
+    </title>
+
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+
+    <style>
+        .archive-card {
+            max-width: 700px;
+            margin: 60px auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 40px;
+        }
+
+        .archive-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .archive-title h2 {
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .archive-title p {
+            color: var(--text-muted);
+        }
+
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .custom-date {
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: #111827;
+            color: white;
+        }
+
+        .search-btn {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('../../views/components/sidebar.ejs') %>
+
+        <main class="main-content">
+
+            <div class="topbar">
+                <div class="archive-title">
+                    <h4>أرشيف الأيام</h4>
+                </div>
+
+                <form action="/searchDayArchive" method="GET" class="d-flex gap-2 flex-wrap" style="width: 30%;">
+                    <div class="d-flex gap-2 align-items-center">
+                        <input type="date" name="date" class="custom-input" required>
+                    </div>
+
+
+                    <button type="submit" class="action-btn primary">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        بحث
+                    </button>
+                </form>
+            </div>
+
+            <div id="formMessages" class="formMessages">
+            </div>
+
+            <div class="tab-section active" id="invoices-section">
+                <div class="orders-card">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>اليوم/التاريخ</th>
+                                <!-- <th>المبيعات</th> -->
+                                <th>مصاريف</th>
+                                <th>أرباح</th>
+                                <!-- <th>إجراءات</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (days.length> 0 ) { %>
+                                <% (days).forEach((sale, i)=> { %>
+                                    <tr class="day-row" style="text-align: center;cursor: pointer;user-select: none;"
+                                        data-href="/dayPage/<%= sale._id %>">
+                                        <td style="color:var(--blue);font-weight:600">
+                                            <%= i + 1 %>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center justify-content-center">
+                                                <div>
+                                                    <div style="font-size:13px;font-weight:600">
+                                                        <%= dayjs(sale.startTime).format('dddd') %>
+                                                            <%= dayjs(sale.startTime).format('YYYY-MM-DD') %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <!-- <td style="color:var(--text-muted)">
+                                            <%= sale.totalSales.toFixed(2) %> ₪
+                                        </td> -->
+                                        <td style="color:var(--text-muted)">
+                                            <%= sale.totalExpenses.toFixed(2) %> ₪
+                                        </td>
+                                        <td style="color:var(--text-muted)">
+                                            <%= sale.netProfit.toFixed(2) %> ₪
+                                        </td>
+                                        <!-- <td>
+                                            <div class="action-btns">
+                                                <a href="/dayPage/<%= sale._id %>" class="btn-icon"
+                                                    title="عرض تفاصيل اليوم">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                </a>
+                                            </div>
+                                        </td> -->
+
+                                    </tr>
+
+                                    <% }) %>
+
+                                        <% } %>
+
+                                            <% if (days.length <=0 ) { %>
+                                                <tr style="text-align: center;">
+                                                    <td colspan="6" style="color: #8e8c8c;">
+                                                        لا يوجد أيام داخل الأرشيف
+                                                    </td>
+                                                </tr>
+
+                                                <% } %>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+        <script>
+            const dayRow = Array.from(document.querySelectorAll('.day-row'));
+            dayRow.forEach(row => {
+                row.addEventListener('dblclick', () => {
+                    const href = row.getAttribute('data-href');
+                    if (href) {
+                        window.location.href = href;
+                    }
+                });
+            });
+        </script>
+
+        <% if (msg) { %>
+            <script>
+
+                const t = document.getElementById('formMessages');
+
+                if (t) {
+                    t.innerHTML = "<%= msg %>";
+                    t.classList.add('show');
+
+                    setTimeout(() => {
+                        t.classList.remove('show');
+                    }, 3000);
+                }
+            </script>
+            <% } %>
+
+</body>
+
+</html>

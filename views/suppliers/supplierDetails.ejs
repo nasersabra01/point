@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= page %>
+    </title>
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        .hidden {
+            display: none;
+        }
+
+
+        .tab-btn {
+            transition: .3s;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, .08);
+        }
+
+        .infooo {
+            color: #8b8b8b;
+            font-size: 14px;
+        }
+
+        .matched-row td {
+            background: rgba(220, 53, 69, 0.08) !important;
+        }
+
+        .match-btn {
+            border: none;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+
+        }
+
+        .match-btn.matched {
+            background: #dc3545;
+            color: white;
+        }
+
+        .match-btn.unmatched {
+            background: #6c757d;
+            color: white;
+        }
+
+        .stat {
+            width: 100%;
+            font-size: 10px;
+        }
+
+        .stat tr {
+            background-color: #eeeeee07;
+        }
+
+        .stat td {
+            padding: 3px 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('../../views/components/sidebar.ejs') %>
+        <main class="main-content">
+
+            <!-- Supplier Card -->
+            <div class="supplier-card">
+                <div class="supplier-profile">
+                    <div class="supplier-avatar">
+                        <%= supplier.name.charAt(0) %>
+                    </div>
+
+                    <div>
+                        <h3>
+                            <%= supplier.name %>
+                        </h3>
+                        <!-- <span class="supplier-status">نشط</span> -->
+                        <div class="mt-3">
+                            <div class="infooo"><i class="fa-solid fa-location-dot"></i>
+                                <%= supplier.address %>
+                            </div>
+                            <div class="infooo"><i class="fa-solid fa-phone"></i>
+                                <%= supplier.phone %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="supplier-meta">
+                    <div><i class="fa-regular fa-clipboard"></i> أخر مطابقة حساب : <%=
+                            dayjs(supplier.lastMatchedAt).format('dddd') %> - <%=
+                                dayjs(supplier.lastMatchedAt).format('YYYY-MM-DD') %>
+                    </div>
+
+
+
+                    <div><i class="fa-solid fa-arrow-up-short-wide"></i>
+                        <span> إجمالي الحساب :</span>
+                        <% if (supplier.balance > 0) { %>
+                            <strong class="text-success">له : <%= supplier.balance.toFixed(2) %></strong>
+                            <% } %>
+                                <% if (supplier.balance < 0) { %>
+                                    <strong class="text-danger">عليه : <%= supplier.balance.toFixed(2) %></strong>
+                                    <% } %>
+                                <% if (supplier.balance === 0) { %>
+                                    <strong><%= supplier.balance.toFixed(2) %></strong>
+                                    <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="invoices">الفواتير <%= invoices.length %></button>
+                <button class="tab-btn" data-tab="products"> الأصناف</button>
+                <button class="tab-btn" data-tab="payments">المدفوعات</button>
+                <button class="tab-btn" data-tab="statement">كشف الحساب</button>
+                <button class="tab-btn" data-tab="statement"> ملاحظات</button>
+            </div>
+
+            <!-- Invoices -->
+            <div id="invoices-section" class="orders-card tab-content">
+                <div class="toolbar mb-3">
+                    <form action="/supplierPage/<%= supplier._id %>" method="GET" class="row w-100 g-3 align-items-end">
+
+                        <input type="hidden" name="tab" value="invoices">
+
+                        <div class="col-md-3 d-flex align-items-center">
+                            <label class="mb-2">من </label>
+                            <input type="date" name="invoicesFrom" value="<%= invoiceFilters?.from || '' %>"
+                                class="custom-input">
+                        </div>
+
+                        <div class="col-md-3 d-flex align-items-center">
+                            <label class="mb-2">إلى </label>
+                            <input type="date" name="invoicesTo" value="<%= invoiceFilters?.to || '' %>"
+                                class="custom-input">
+                        </div>
+
+                        <div class="col-md-2">
+                            <button class="action-btn primary w-100">
+                                فلترة
+                            </button>
+                        </div>
+
+                        <div class="col-md-2">
+                            <a href="/supplierInvoicesReport/<%= supplier._id %>?from=<%= invoiceFilters?.from || '' %>&to=<%= invoiceFilters?.to || '' %>"
+                                class="action-btn secondary w-100">
+                                طباعة
+                            </a>
+                        </div>
+
+                        <div class="col-md-2">
+                            <a href="/supplierPage/<%= supplier._id %>?tab=invoices" class="action-btn secondary w-100">
+                                الكل
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="orders-card">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>تاريخ الفاتورة</th>
+                                <th>رقم الفاتورة</th>
+                                <th>عدد الأصناف</th>
+                                <th>إجمالي الفاتورة</th>
+                                <th>إجراءات</th>
+                                <th>المطابقة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (invoices.length> 0 ) { %>
+                                <% (invoices).forEach((sale, i)=> { %>
+                                    <tr class="<%= sale.isMatched ? 'matched-row' : '' %>" style="text-align:center;">
+                                        <td style="color:var(--blue);font-weight:600">
+                                            <%= i + 1 %>
+                                        </td>
+
+                                        <td>
+                                            <%= dayjs(sale.day.startTime).format('DD/MM/YYYY') %>
+                                        </td>
+
+                                        <td>
+                                            <div class="d-flex align-items-center justify-content-center">
+                                                <div>
+                                                    <div style="font-size:13px;font-weight:600">
+                                                        <%= sale.invoiceNo %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <td style="color:var(--text-muted)">
+                                            <%= sale.productsCount %>
+                                        </td>
+
+                                        <td style="color:var(--text-muted)">
+                                            <%= sale.total.toFixed(2) %>
+                                        </td>
+                                        <td>
+                                            <div class="action-btns">
+                                                <a href="/invoiceDetailes/<%= sale._id %>" class="btn-icon"
+                                                    title="عرض تفاصيل الفاتورة">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button class="match-btn <%= sale.isMatched ? 'matched' : 'unmatched' %>"
+                                                onclick="toggleInvoiceMatch('<%= sale._id %>')">
+
+                                                <%= sale.isMatched ? 'مطابقة' : 'غير مطابقة' %>
+                                            </button>
+                                        </td>
+
+                                    </tr>
+
+                                    <% }) %>
+
+                                        <% } %>
+
+                                            <% if (invoices.length <=0 ) { %>
+                                                <tr>
+                                                    <td colspan="6" style="color: #8e8c8c;">
+                                                        لم يتم إضافة أي فاتورة بعد.
+                                                    </td>
+                                                </tr>
+
+                                                <% } %>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="products-section" class="orders-card tab-content hidden">
+                <div class="toolbar mb-3">
+                    <form action="/supplierPage/<%= supplier._id %>" method="GET" class="row w-100 g-3 align-items-end">
+
+                        <input type="hidden" name="tab" value="products">
+
+                        <div class="col-md-3 d-flex align-items-center">
+                            <label class="mb-2">من </label>
+                            <input type="date" name="productsFrom" value="<%= productFilters?.from || '' %>"
+                                class="custom-input">
+                        </div>
+
+                        <div class="col-md-3 d-flex align-items-center">
+                            <label class="mb-2">إلى </label>
+                            <input type="date" name="productsTo" value="<%= productFilters?.to || '' %>"
+                                class="custom-input">
+                        </div>
+
+                        <div class="col-md-2">
+                            <button class="action-btn primary w-100">
+                                فلترة
+                            </button>
+                        </div>
+
+                        <div class="col-md-2">
+                            <a href="/supplierProductsReport/<%= supplier._id %>?from=<%= productFilters?.from || '' %>&to=<%= productFilters?.to || '' %>&status=<%= productFilters?.status || '' %>"
+                                class="action-btn secondary w-100">
+                                طباعة
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="orders-card">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>الصنف</th>
+                                <th>رقم الفاتورة</th>
+                                <th>الوزن / العدد</th>
+                                <th>تكلفة الوحدة</th>
+                                <th>ربح</th>
+                                <th>حالة الوزن</th>
+                                <th>حالة البيع</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (products?.length> 0 ) { %>
+                                <% (products || []).forEach((pr, i)=> { %>
+                                    <tr style="text-align: center;" data-sale-status="<%= pr.saleStatus %>"
+                                        data-invoice-type="<%= pr.invoice.invoiceType %>"
+                                        data-stay-status="<%= pr.stayStatus %>">
+                                        <td style="color:var(--blue);font-weight:600">
+                                            <%= i + 1 %>
+                                        </td>
+                                        <td>
+                                            <div class="product-cell">
+                                                <div class="product-info">
+                                                    <div class="product-name">
+                                                        <%= pr.productName %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td style="color:var(--text-muted)">
+                                            <%= pr.invoice.invoiceNo %>
+                                        </td>
+                                        <td style="color:var(--text-muted)">
+                                            <%= pr.mainWeight %>
+                                        </td>
+                                        <td style="color:var(--text-muted)">
+                                            <% if (pr.invoice.invoiceType==='شراء' ) { %>
+                                                <%= pr.purchaseData.wholesalePrice %> ₪
+                                                    <% } %>
+                                                        <% if (pr.invoice.invoiceType==='كمسيون' ) { %>
+                                                            <%= pr.commissionData.commissionRate %> %
+                                                                <% } %>
+                                        </td>
+
+                                        <td style="color:var(--text-muted)">
+                                            <%= pr.profit.toFixed(2) %> ₪
+                                        </td>
+                                        <td>
+                                            <% if (pr.weightStatus==='متطابق' ) { %>
+                                                <span class="badge-status badge-success">
+                                                    <%= pr.weightStatus %>
+                                                </span>
+                                                <% } %>
+                                                    <% if (pr.weightStatus==='نقص' ) { %>
+                                                        <span class="badge-status badge-cancel">
+                                                            <%= pr.weightStatus %>
+                                                                <% if (pr.saleStatus==='closed' ) { %>
+                                                                    - <%= pr.loseWeight %>
+                                                                        <% } %>
+                                                        </span>
+                                                        <% } %>
+                                                            <% if (pr.weightStatus==="لم يبع" ) { %>
+                                                                <span class="badge-status badge-tran">
+                                                                    <%= pr.weightStatus %>
+                                                                </span>
+                                                                <% } %>
+                                        </td>
+                                        <td>
+                                            <% if (pr.saleStatus==='open' ) { %>
+                                                <% if (pr.stayStatus==='ontherDay' ) { %>
+                                                    <span class="badge-status badge-success">
+                                                        مفتوح - آجل
+                                                    </span>
+                                                    <% } %>
+                                                        <% if (pr.stayStatus==='today' ) { %>
+                                                            <span class="badge-status badge-success">
+                                                                مفتوح
+                                                            </span>
+                                                            <% } %>
+                                                                <% } %>
+                                                                    <% if (pr.saleStatus==='closed' ) { %>
+                                                                        <span class="badge-status badge-cancel">
+                                                                            مغلق
+                                                                        </span>
+                                                                        <% } %>
+                                        </td>
+                                        <td>
+                                            <div class="action-btns">
+                                                <a href="/invoiceDetailes/<%=  pr.invoice._id %>"
+                                                    class="btn-icon btn-icon--assent" title="عرض داخل الفاتورة">
+                                                    <i class="fa-solid fa-arrows-to-eye"></i>
+                                                </a>
+                                                <a href="/productDetailsPage/<%=  pr._id %>" class="btn-icon"
+                                                    title="عرض تفاصيل الصنف">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                </a>
+
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                                        <% } %>
+
+
+                                            <% if (products.length <=0 ) { %>
+                                                <tr style="text-align: center;">
+                                                    <td colspan="9" style="color: #8e8c8c;">
+                                                        لم يتم إضافة أي أصناف بعد
+                                                    </td>
+                                                </tr>
+                                                <% } %>
+
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Payments Section -->
+            <div id="payments-section" class="orders-card tab-content hidden">
+                <div class="toolbar mb-3">
+                    <form action="/supplierPage/<%= supplier._id %>" method="GET" class="row w-100 g-3 align-items-end">
+
+                        <input type="hidden" name="tab" value="payments">
+
+                        <div class="col-md-3 d-flex align-items-center">
+                            <label class="mb-2">من </label>
+                            <input type="date" name="paymentsFrom" value="<%= paymentFilters?.from || '' %>"
+                                class="custom-input">
+                        </div>
+
+                        <div class="col-md-3 d-flex align-items-center">
+                            <label class="mb-2">إلى </label>
+                            <input type="date" name="paymentsTo" value="<%= paymentFilters?.to || '' %>"
+                                class="custom-input">
+                        </div>
+
+                        <div class="col-md-2">
+                            <button class="action-btn primary w-100">
+                                فلترة
+                            </button>
+                        </div>
+
+                        <div class="col-md-2">
+                            <a href="/supplierPaymentsReport/<%= supplier._id %>?from=<%= paymentFilters?.from || '' %>&to=<%= paymentFilters?.to || '' %>"
+                                class="action-btn secondary w-100">
+                                طباعة
+                            </a>
+                        </div>
+
+                        <div class="col-md-2">
+                            <a href="/supplierPage/<%= supplier._id %>?tab=payments" class="action-btn secondary w-100">
+                                الكل
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="orders-card">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>التاريخ</th>
+                                <th>المبلغ</th>
+                                <th>طريقة الدفع</th>
+                                <th>من</th>
+                                <th>إلى</th>
+                                <th>ملاحظات</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <% if (payments.length> 0) { %>
+                                <% payments.forEach((payment, i)=> { %>
+                                    <tr style="text-align: center;" class="payment-row"
+                                        data-payment="<%= payment.paymentMethod %>"
+                                        data-supplier="<%= payment.supplier?.name || '' %>">
+
+                                        <td>
+                                            <%= i + 1 %>
+                                        </td>
+
+                                        <td>
+                                            <%= dayjs(payment.createdAt).format('DD/MM/YYYY') %>
+                                        </td>
+
+
+                                        <td style="color: var(--green); font-weight:700;">
+                                            <%= payment.amount.toFixed(2) %> ₪
+                                        </td>
+                                        <td>
+                                            <% if (payment.paymentMethod==='cash' ) { %>
+                                                <span class="badge-status badge-success">كاش</span>
+                                                <% } else if(payment.paymentMethod==='bank_transfer' ) { %>
+                                                    <span class="badge-status badge-tran">تحويل بنكي</span>
+                                                    <% } else if(payment.paymentMethod==='trans' ) { %>
+                                                        <span class="badge-status badge-tran">تكاليف نقل</span>
+                                                        <% } else if(payment.paymentMethod==='other' ) { %>
+                                                            <span class="badge-status badge-tran">أخرى</span>
+                                                            <% } else if(payment.paymentMethod==='staf' ) { %>
+                                                                <span class="badge-status badge-tran">بضاعة</span>
+                                                                <% } %>
+                                        </td>
+
+
+                                        <td>
+                                            <%= payment.senderAccountName || '-' %>
+                                        </td>
+                                        <td>
+                                            <%= payment.receiverAccountName || '-' %>
+                                        </td>
+                                        <td>
+                                            <%= payment.notes || '-' %>
+                                        </td>
+
+
+
+
+
+                                    </tr>
+                                    <% }) %>
+                                        <% } else { %>
+                                            <tr>
+                                                <td colspan="9" style="text-align:center;color:#94A3B8;">
+                                                    لا توجد مدفوعات حتى الآن
+                                                </td>
+                                            </tr>
+                                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+
+
+            <div id="statement-section" class="orders-card tab-content hidden">
+                <div class="toolbar mb-3">
+                    <form action="/supplierPage/<%= supplier._id %>" method="GET" class="row w-100 g-3 align-items-end">
+
+                        <input type="hidden" name="tab" value="statement">
+
+                        <div class="col-md-3 d-flex align-items-center">
+                            <label class="mb-2">من </label>
+                            <input type="date" name="from" value="<%= filters?.from || '' %>" class="custom-input">
+                        </div>
+
+                        <div class="col-md-3 d-flex align-items-center">
+                            <label class="mb-2">إلى </label>
+                            <input type="date" name="to" value="<%= filters?.to || '' %>" class="custom-input">
+                        </div>
+
+                        <div class="col-md-2">
+                            <button class="action-btn primary w-100">
+                                فلترة
+                            </button>
+                        </div>
+
+                        <div class="col-md-2">
+                            <a href="/supplierStatementReport/<%= supplier._id %>?from=<%= filters?.from || '' %>&to=<%= filters?.to || '' %>"
+                                class="action-btn secondary w-100">
+                                طباعة
+                            </a>
+                        </div>
+
+                        <div class="col-md-2">
+                            <a href="/supplierPage/<%= supplier._id %>" class="action-btn secondary w-100">
+                                الكل
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="d-flex justify-content-between align-items-center" style="padding: 0 35px;">
+
+                    <div>
+                        <strong>آخر مطابقة:</strong>
+                        <%= dayjs(supplier.lastMatchedAt).format('dddd') %> - <%=
+                                dayjs(supplier.lastMatchedAt).format('YYYY-MM-DD') %>
+                    </div>
+
+                    <button class="action-btn primary" onclick="matchSupplierAccount('<%= supplier._id %>')">
+                        مطابقة الحساب
+                    </button>
+                </div>
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>مدين</th>
+                            <th>دائن</th>
+                            <th>الرصيد</th>
+                            <th>البيان</th>
+                            <th>تفاصيل الحركة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (statement.length> 0) { %>
+                            <% statement.forEach((item, i)=> { %>
+                                <tr style="text-align: center;padding: 0px;">
+                                    <td>
+                                        <%= dayjs(item.date).format('DD/MM/YYYY') %>
+                                    </td>
+
+
+                                    <td>
+                                        <%= item.debit> 0 ? ('₪ ' + item.debit.toFixed(2)) : '-' %>
+                                    </td>
+
+                                    <td>
+                                        <%= item.credit> 0 ? ('₪ ' + item.credit.toFixed(2)) : '-' %>
+                                    </td>
+                                    <td style="font-weight:bold;color:var(--blue)">
+                                        ₪ <%= item.balance.toFixed(2) %>
+                                    </td>
+                                    <td>
+                                        <%= item.type %> <br>
+                                            <span style="color: #6c757d;font-size: 9px;">
+                                                <%= item.invoice ? item.invoice.invoiceNo : '' %>
+                                            </span>
+                                    </td>
+                                    <td>
+                                        <% if(item.type.includes('فاتورة')) { %>
+
+
+                                            <table class="stat">
+                                                <% const inPr=[] %>
+                                                    <% products.forEach(product=> { %>
+                                                        <% if (product.invoice.invoiceNo===item.invoice.invoiceNo) { %>
+                                                            <% inPr.push(product) %>
+                                                                <% } %>
+                                                                    <% }) %>
+                                                                        <tr>
+                                                                            <th>الصنف</th>
+                                                                            <th>الكمية</th>
+                                                                            <th>التكلفة</th>
+                                                                            <th>مبيعات</th>
+                                                                            <th>مستحق العمولة</th>
+                                                                            <th>مستحق المورد</th>
+                                                                        </tr>
+                                                                        <% inPr.forEach(product=> { %>
+                                                                            <tr>
+                                                                                <td>
+                                                                                    <%= product.productName %>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <%= product.mainWeight.toFixed(2) %>
+                                                                                        <small
+                                                                                            style="color: #6c757d;font-size: 9px;">
+                                                                                            <%= product.unit %>
+                                                                                        </small>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <% if (product.invoice.invoiceType==='شراء' ) { %>
+                                                                                        <%= product.purchaseData.wholesalePrice.toFixed(2) %> ₪
+                                                                                        <% } %>
+                                                                                    <% if (product.invoice.invoiceType==='كمسيون' ) { %>
+                                                                                        <%= product.commissionData.commissionRate.toFixed(2) %> %
+                                                                                        <% } %>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <% if (product.invoice.invoiceType==='شراء' ) { %>
+                                                                                        <%= product.purchaseData.totalCost.toFixed(2) %> ₪
+                                                                                        <% } %>
+                                                                                    <% if (product.invoice.invoiceType==='كمسيون' ) { %>
+                                                                                        <%= product.sales.toFixed(2) || '-' %> ₪
+                                                                                        <% } %>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <% if (product.invoice.invoiceType==='شراء' ) { %>
+                                                                                        -- ₪
+                                                                                        <% } %>
+                                                                                    <% if (product.invoice.invoiceType==='كمسيون' ) { %>
+                                                                                        <%= product.commissionData.commissionAmount %> ₪
+                                                                                        <% } %>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <% if (product.invoice.invoiceType==='شراء' ) { %>
+                                                                                        -- ₪
+                                                                                        <% } %>
+                                                                                    <% if (product.invoice.invoiceType==='كمسيون' ) { %>
+                                                                                        <%= product.commissionData.supplierAmount %> ₪
+                                                                                        <% } %>
+                                                                                </td>
+                                                                            </tr>
+                                                                            <% }) %>
+                                            </table>
+
+
+
+
+                                            <% } %>
+                                    </td>
+
+
+                                </tr>
+                                <% }) %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="6">لا توجد حركات</td>
+                                        </tr>
+                                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="/js/main.js"></script>
+
+        <script>
+
+            function showToast(message) {
+                window.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+                const messagesDiv = document.getElementById('formMessages');
+                messagesDiv.innerHTML = message;
+                messagesDiv.classList.add('show');
+                setTimeout(() => messagesDiv.classList.remove('show'), 1500);
+            }
+            const tabButtons = document.querySelectorAll('.tab-btn');
+
+            const activeTab = "<%= activeTab %>";
+
+            const sections = {
+                invoices: document.getElementById('invoices-section'),
+                products: document.getElementById('products-section'),
+                payments: document.getElementById('payments-section'),
+                statement: document.getElementById('statement-section')
+            };
+
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+
+            Object.values(sections).forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            document.querySelector(`[data-tab="${activeTab}"]`)?.classList.add('active');
+            sections[activeTab]?.classList.remove('hidden');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+
+                    Object.values(sections).forEach(section => {
+                        section.classList.add('hidden');
+                    });
+
+                    button.classList.add('active');
+
+                    const tab = button.dataset.tab;
+                    sections[tab].classList.remove('hidden');
+                });
+            });
+
+
+            async function toggleInvoiceMatch(id) {
+                try {
+                    const res = await fetch(`/toggleInvoiceMatch/${id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    const data = await res.json();
+
+                    if (!data.success) {
+                        alert(data.msg);
+                        return;
+                    }
+
+                    location.reload();
+
+                } catch (error) {
+                    console.log(error);
+                    alert('حدث خطأ');
+                }
+            }
+            async function matchSupplierAccount(id) {
+                if (!confirm('هل تريد تأكيد مطابقة الحساب؟')) return;
+
+                try {
+                    const res = await fetch(`/matchSupplierAccount/${id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    const data = await res.json();
+
+                    if (!data.success) {
+                        showToast(data.msg);
+                        return;
+                    }
+
+                    showToast(data.msg);
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 800);
+
+                } catch (error) {
+                    console.log(error);
+                    showToast('حدث خطأ');
+                }
+            }
+        </script>
+
+        <% if (msg) { %>
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    showToast("<%= msg %>");
+                });
+            </script>
+            <% } %>
+</body>
+
+</html>

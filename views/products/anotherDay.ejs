@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= page %>
+    </title>
+
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css"> <!-- fontawesome css file -->
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css"> <!-- bootstrap css min file -->
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="/css/main.css">
+
+
+</head>
+
+
+
+<body>
+    <!-- sidebar -->
+    <%- include('../../views/components/sidebar.ejs') %>
+
+        <main class="main-content" style="margin-top: 20px">
+
+            <div class="page-actions toolbar">
+                <div>
+                    <%= page %>
+                </div>
+
+            </div>
+
+            <div id="formMessages" class="formMessages" style="background-color: green;">
+            </div>
+
+            <div class="orders-card">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>الصنف</th>
+                            <th>التاريخ/اليوم</th>
+                            <th>أيام التأخير</th>
+                            <th>المورد</th>
+                            <th>الكمية الاصلية</th>
+                            <th>الكمية المباعة</th>
+                            <th>الكمية المتبقية</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (products?.length> 0 ) { %>
+                            <% (products || []).forEach((pr, i)=> { %>
+                                <tr style="text-align: center;">
+                                    <td style="color:var(--blue);font-weight:600">
+                                        <%= i + 1 %>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="order-avatar"
+                                                style="background:linear-gradient(135deg,#3B82F6,#8B5CF6)">
+                                                <%= pr.productName.charAt(0) %>
+                                            </div>
+                                            <div>
+                                                <div style="font-size:13px;font-weight:600">
+                                                    <%= pr.productName %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="color:var(--text-muted)">
+                                        <% if (pr.invoice?.day?.startTime) { %>
+                                            <%= dayjs(pr.invoice.day.startTime).format('dddd') %>
+                                                <br>
+                                                <%= dayjs(pr.invoice.day.startTime).format('YYYY-MM-DD') %>
+                                                    <% } else { %>
+                                                        -
+                                                        <% } %>
+                                    </td>
+                                    <td>
+
+
+                                        <span>
+                                            <%= dayjs().diff(dayjs(pr.createdAt), 'day' ) %> يوم
+                                        </span>
+                                    </td>
+                                    <td style="color:var(--text-muted)">
+                                        <%= pr.invoice?.supplier?.name || '-' %>
+                                    </td>
+                                    <td style="font-weight:700;">
+                                        <%= pr.mainWeight.toFixed(2) %>
+                                            <%= pr.unit %>
+                                    </td>
+                                    <td style="font-weight:700;">
+                                        <%= pr.soldWeight.toFixed(2) %>
+                                            <%= pr.unit %>
+                                    </td>
+                                    <td style="font-weight:700;">
+                                        <%= pr.remainingWeight.toFixed(2) %>
+                                            <%= pr.unit %>
+                                    </td>
+
+                                    <td>
+                                        <div class="action-btns">
+                                            <a href="/productSaleStatment/<%=  pr._id %>"
+                                                class="btn-icon btn-icon--green" title="متابعة البيع">
+                                                <i class="fa-solid fa-clipboard-list"></i>
+                                            </a>
+                                            <a href="/invoiceDetailes/<%=  pr.invoice._id %>"
+                                                class="btn-icon btn-icon--assent" title="عرض داخل الفاتورة">
+                                                <i class="fa-solid fa-arrows-to-eye"></i>
+                                            </a>
+                                            <a href="/productDetailsPage/<%=  pr._id %>" class="btn-icon"
+                                                title="عرض تفاصيل الصنف">
+                                                <i class="fa-solid fa-eye"></i>
+                                            </a>
+
+                                        </div>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                    <% } %>
+
+
+                                        <% if (products.length <=0 ) { %>
+                                            <tr style="text-align: center;">
+                                                <td colspan="9" style="color: #8e8c8c;">
+                                                    لا توجد كشوفات آجلة حالياً. </td>
+                                            </tr>
+                                            <% } %>
+
+
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+
+
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script> <!-- bootstrap js min.js -->
+        <script src="/js/main.js"></script>
+
+        <script>
+            function showToast() {
+                window.scrollTo({ left: 0, top: 0, behavior: `smooth` });
+                const t = document.getElementById('formMessages');
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 1000);
+            }
+        </script>
+
+        <% if (msg) { %>
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const messagesDiv = document.getElementById('formMessages');
+                    messagesDiv.innerHTML = "<%= msg %>";
+                    showToast();
+                });
+            </script>
+            <% } %>
+</body>
+
+</html>

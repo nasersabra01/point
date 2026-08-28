@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= page %>
+    </title>
+
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css"> <!-- fontawesome css file -->
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css"> <!-- bootstrap css min file -->
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="/css/main.css">
+
+
+</head>
+
+
+
+<body>
+    <!-- sidebar -->
+    <%- include('../../views/components/sidebar.ejs') %>
+
+        <main class="main-content" style="margin-top: 20px">
+
+            <div class="page-actions toolbar d-flex justify-content-between">
+                <div>
+                    <%= new Date(openShift.startTime).toLocaleDateString('ar-EG', { weekday: 'long' }) %>
+                        <%= openShift.startTime.toLocaleString('ar-EG') %>
+                </div>
+
+                <div class="d-flex justify-content-between" style="width: 300px;">
+                    <a href="/addExpensesPage/<%= openShift._id %>" class="action-btn primary">
+                        <i class="fa-solid fa-circle-plus"></i>
+                        إضافة مصروفات اليوم
+                    </a>
+                </div>
+            </div>
+
+            <div id="formMessages" class="formMessages" style="background-color: green;">
+            </div>
+
+            <div class="orders-card">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>نوع المصروف</th>
+                            <th>المبلغ</th>
+                            <th>ملاحظات</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (expenses?.length> 0 ) { %>
+                            <% (expenses || []).forEach((pr, i)=> { %>
+                                <tr style="text-align: center;">
+                                    <td style="color:var(--blue);font-weight:600">
+                                        <%= i + 1 %>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div>
+                                                <div style="font-size:13px;font-weight:600">
+                                                    <%= pr.expType %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="color:var(--text-muted)">
+                                        <%= pr.amount.toFixed(2) %> ₪
+                                    </td>
+                                    <td style="color:var(--text-muted)">
+                                        <%= pr.details %>
+                                    </td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <a href="/editExpensesPage/<%= pr._id %>" class="btn-icon btn-icon--assent"
+                                                title="تعديل المصروف">
+                                                <i class="fa-solid fa-pen"></i>
+                                            </a>
+
+                                            <form action="/deleteExpenses/<%= pr._id %>" method="post" class="d-inline"
+                                                onsubmit="return confirm('هل أنت متأكد من حذف هذا المصروف؟')">
+                                                <button class="btn-icon btn-icon--red">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+
+                                            <!-- <form action="/deleteProduct/<%= pr._id %>" method="post"
+                                                onsubmit="return confirm('هل أنت متأكد من حذف هذا الصنف')">
+
+                                                <button" class="btn-icon btn-icon--red" title="حذف الصنف">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form> -->
+
+                                        </div>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                    <tr>
+                                        <th style="text-align: center;">#</th>
+                                        <th style="color: rgb(232, 45, 45);">مجموع</th>
+                                        <th style="text-align: center;color: rgb(232, 45, 45);">
+                                            <%= openShift.expenses.toFixed(2) %> ₪
+                                        </th>
+                                    </tr>
+                                    <% } %>
+
+
+                                        <% if (expenses.length <=0 ) { %>
+                                            <tr style="text-align: center;">
+                                                <td colspan="9" style="color: #8e8c8c;">
+                                                    لم يتم صرف اي شي اليوم
+                                                </td>
+                                            </tr>
+                                            <% } %>
+
+
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+
+
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script> <!-- bootstrap js min.js -->
+        <script src="/js/main.js"></script>
+
+        <script>
+            function showToast() {
+                window.scrollTo({ left: 0, top: 0, behavior: `smooth` });
+                const t = document.getElementById('formMessages');
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 1000);
+            }
+        </script>
+
+        <% if (msg) { %>
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const messagesDiv = document.getElementById('formMessages');
+                    messagesDiv.innerHTML = "<%= msg %>";
+                    showToast();
+                });
+            </script>
+            <% } %>
+</body>
+
+</html>

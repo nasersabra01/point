@@ -1,0 +1,83 @@
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <div class="d-flex align-items-center">
+            <div class="brand-logo">م</div>
+            <div class="d-flex align-items-center justifi">
+                <div class="brand-name">شركة النصر</div>
+                <div class="brand-sub">(المتربيعي)</div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <ul class="nav flex-column gap-1 mb-3">
+            <li class="nav-item">
+                <a href="/" class="<%= page === 'الرئيسية' ? 'active' : '' %>">
+                    <i class="fa-solid fa-house"></i>
+                    الرئيسية</a>
+            </li>
+
+        </ul>
+
+        <ul class="nav flex-column gap-1 mb-3">
+            <!-- <li class="nav-item">
+                <a href="#"><i class="bi bi-bag-fill"></i> الطلبات <span class="nav-badge">12</span></a>
+            </li> -->
+            <li class="nav-item">
+                <a href="/anotherdayPage" class="<%= page === 'كشوف آجلة' ? 'active' : '' %>"><i
+                        class="fa-solid fa-clipboard-list"></i>كشوف آجلة <span style="position: relative;left:-80px;background-color: #eee;color: rgb(17, 17, 57);padding: 4px;display: flex;justify-content: center;align-items: center;border-radius: 50%;width: 20px;height: 20px;"><%= onthCount %></span></a>
+            </li>
+            <li class="nav-item">
+                <a href="/suppliersList"
+                    class="<%= page === 'قائمة الموردين' || page === 'إضافة مورد' || page === 'تعديل مورد' ? 'active' : '' %>"><i
+                        class="fas fa-users"></i> موردين</a>
+            </li>
+<li class="nav-item">
+    <a href="/employees" class="<%= page === 'العاملين' ? 'active' : '' %>">
+        <i class="fas fa-users"></i> عاملين
+    </a>
+</li>
+            <li class="nav-item">
+                <a href="/archiveDays" class="<%= page === 'أرشيف الأيام' ? 'active' : '' %>"><i class="fa-solid fa-box-archive"></i> أرشيف الأيام</a>
+            </li>
+            <li class="nav-item">
+                <a href="/productsAnalytics" class="<%= page === 'الأصناف' ? 'active' : '' %>"><i class="fa-solid fa-apple-whole"></i>أصناف</a>
+            </li>
+            <li class="nav-item">
+                <a href="/periodReport"><i class="fa-solid fa-chart-bar"></i>تقارير</a>
+            </li>
+        </ul>
+
+        <div class="nav-label">المالية</div>
+        <ul class="nav flex-column gap-1 mb-3">
+            <li class="nav-item">
+                <a href="/expensesReport" class="<%= page === 'مصاريف عامة' ? 'active' : '' %>"><i
+                        class="fa-solid fa-outdent"></i> مصاريف</a>
+            </li>
+            <li class="nav-item">
+                <a href="/payments" class="<%= page === 'المدفوعات' ? 'active' : '' %>">
+                    <i class="fa-solid fa-file-invoice"></i> مدفوعات
+                </a>
+            </li>
+
+        </ul>
+
+        <div class="nav-label">النظام</div>
+        <ul class="nav flex-column gap-1">
+            <li class="nav-item">
+                <a href="/settings" class="<%= page === 'الإعدادات' ? 'active' : '' %>"><i class="fa-solid fa-ellipsis"></i> الإعدادات</a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-card">
+            <div class="user-avatar">N</div>
+            <div>
+                <div class="user-name">NASER SABRA</div>
+                <div class="user-role">SYSTEM ADMIN</div>
+            </div>
+            <i class="bi bi-three-dots-vertical text-muted ms-auto"></i>
+        </div>
+    </div>
+</aside>

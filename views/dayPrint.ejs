@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>التقرير اليومي</title>
+        <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+        }
+
+        body {
+            direction: rtl;
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
+            padding: 30px;
+            color: #222;
+        }
+
+        .report-container {
+            max-width: 1500px;
+            margin: auto;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 0, 0, .08);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h2 {
+            font-size: 34px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            margin-top: 6px;
+            opacity: .9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #0f172a;
+            border-right: 5px solid #16a34a;
+            padding-right: 12px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+
+        .summary-card {
+            color: white;
+            padding: 25px;
+            border-radius: 14px;
+            text-align: center;
+        }
+
+        .summary-card h4 {
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .summary-card h2 {
+            font-size: 28px;
+        }
+
+        .card-sales {
+            background: #16a34a;
+        }
+
+        .card-profit {
+            background: #2563eb;
+        }
+
+        .card-expenses {
+            background: #dc2626;
+        }
+
+        .card-products {
+            background: #7c3aed;
+        }
+
+        .card-invoices {
+            background: #f59e0b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #0f172a;
+            color: white;
+            padding: 14px;
+            text-align: center;
+        }
+
+        td {
+            border: 1px solid #ddd;
+            padding: 6 14px;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .total-row {
+            font-weight: bold;
+            background: #ecfdf5 !important;
+        }
+
+        .footer {
+            background: #f8fafc;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #ddd;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .report-container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            header {
+                background-color: white;
+                color: black;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="report-container">
+
+        <div class="header">
+            <div>
+                <h4>شركة النصر (المتربيعي)</h4>
+                <p>لتجارة الخضروات والفواكه</p>
+            </div>
+
+            <div style="text-align:center;">
+                <h2>التقرير اليومي</h2>
+                <p>تقرير شامل لجميع عمليات اليوم</p>
+            </div>
+
+            <div>
+                <p>التاريخ: <%= dayjs(shift.startTime).format('DD/MM/YYYY') %>
+                </p>
+                <p>وقت الطباعة: <%= dayjs().format('hh:mm A') %>
+                </p>
+            </div>
+        </div>
+
+        <div class="content">
+
+            <div class="d-flex">
+                <div class="section" style="width: 40%;">
+                    <div class="section-title">ملخص الفواتير</div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>نوع الفاتورة</th>
+                                <th>عدد الفواتير</th>
+                                <th>عدد الأصناف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>شراء</td>
+                                <td>
+                                    <%= stats.purchaseInvoices.length %>
+                                </td>
+                                <td>
+                                    <%= products.filter(p=>
+                                        stats.purchaseInvoices.some(inv =>
+                                        inv._id.toString() === p.invoice.toString()
+                                        )
+                                        ).length %>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>كمسيون</td>
+                                <td>
+                                    <%= stats.commissionInvoices.length %>
+                                </td>
+                                <td>
+                                    <%= products.filter(p=>
+                                        stats.commissionInvoices.some(inv =>
+                                        inv._id.toString() === p.invoice.toString()
+                                        )
+                                        ).length %>
+                                </td>
+                            </tr>
+
+                            <tr class="total-row">
+                                <td>الإجمالي</td>
+                                <td>
+                                    <%= stats.totalInvoices %>
+                                </td>
+                                <td>
+                                    <%= stats.totalProducts %>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="section"style="width: 60%;">
+                    <div class="section-title">كشف الفواتير</div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>رقم الفاتورة</th>
+                                <th>نوع الفاتورة</th>
+                                <th>المورد</th>
+                                <th>عدد الأصناف</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <% if (invoices.length> 0) { %>
+                                <% invoices.forEach((invoice, i)=> { %>
+                                    <tr>
+                                        <td>
+                                            <%= i + 1 %>
+                                        </td>
+                                        <td>
+                                            <%= invoice.invoiceNo %>
+                                        </td>
+                                        <td>
+                                            <%= invoice.invoiceType %>
+                                        </td>
+                                        <td>
+                                            <%= invoice.supplier?.name || '-' %>
+                                        </td>
+                                        <td>
+                                            <%= products.filter(p=>
+                                                p.invoice.toString() === invoice._id.toString()
+                                                ).length %>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                                        <% } else { %>
+                                            <tr>
+                                                <td colspan="5">لا توجد فواتير</td>
+                                            </tr>
+                                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="d-flex">
+                <div class="section" style="width: 40%;">
+                <div class="section-title">المصاريف</div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>البند</th>
+                            <th>المبلغ</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <% if (expenses.length> 0) { %>
+                            <% expenses.forEach((expense, i)=> { %>
+                                <tr>
+                                    <td>
+                                        <%= i + 1 %>
+                                    </td>
+                                    <td>
+                                        <%= expense.expType || expense.title %>
+                                    </td>
+                                    <td>
+                                        <%= expense.amount.toFixed(2) %> ₪
+                                    </td>
+                                </tr>
+                                <% }) %>
+
+                                    <tr class="total-row">
+                                        <td colspan="2">إجمالي المصاريف</td>
+                                        <td>
+                                            <%= stats.totalExpenses.toFixed(2) %> ₪
+                                        </td>
+                                    </tr>
+
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="3">لا توجد مصاريف</td>
+                                        </tr>
+                                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section" style="width: 60%;">
+                <div class="section-title">الملخص المالي</div>
+
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>إجمالي المبيعات</td>
+                            <td>
+                                <%= stats.totalSales.toFixed(2) %> ₪
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>إجمالي الأرباح</td>
+                            <td>
+                                <%= stats.totalProfit.toFixed(2) %> ₪
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>إجمالي المصاريف</td>
+                            <td>
+                                <%= stats.totalExpenses.toFixed(2) %> ₪
+                            </td>
+                        </tr>
+
+                        <tr class="total-row">
+                            <td>صافي الربح</td>
+                            <td>
+                                <%= stats.netProfit.toFixed(2) %> ₪
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            </div>
+
+        </div>
+
+
+    </div>
+
+</body>
+
+</html>

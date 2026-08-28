@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= page %>
+    </title>
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        .payment-toolbar {
+            margin: 24px 0;
+
+        }
+
+        .stats-grid {
+            margin-top: 20px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('../../views/components/sidebar.ejs') %>
+        <main class="main-content" style="margin-top: 20px">
+            <div class="page-actions toolbar">
+                <h2>
+                    <%= page %>
+                </h2>
+
+            </div>
+            <div id="formMessages" class="formMessages" style="background-color: green;"></div>
+
+
+            <div class="d-flex justify-content-between">
+                <div class="orders-card" style="width: 48%;">
+                    <div class="toolbar page-actions">
+                        <h4>مصاريف ثابتة</h4>
+                        <a href="/addFixedExpensesPage" class="action-btn primary">
+                            <i class="fa-solid fa-circle-plus"></i>
+                            إضافة مصروف ثابت
+                        </a>
+                    </div>
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>نوع المصروف</th>
+                                <th>القيمة</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <% if (fixedExpenses.length> 0) { %>
+                                <% fixedExpenses.forEach((payment, i)=> { %>
+                                    <tr style="text-align: center;" class="payment-row">
+
+                                        <td>
+                                            <%= i + 1 %>
+                                        </td>
+
+                                        <td>
+                                            <%= payment.title %>
+                                        </td>
+
+                                        <td style="color: var(--green); font-weight:700;">
+                                            <%= payment.amount.toFixed(2) %> ₪
+                                        </td>
+
+
+                                        <td>
+                                            <div class="action-btns">
+
+                                                <button class="btn-icon btn-icon--red"
+                                                    onclick="deleteExpense('<%= payment._id %>')"><i
+                                                        class="fa-solid fa-trash"></i></button>
+                                            </div>
+                                        </td>
+
+                                    </tr>
+                                    <% }) %>
+                                        <% } else { %>
+                                            <tr>
+                                                <td colspan="9" style="text-align:center;color:#94A3B8;">
+                                                    لا توجد مصاريف ثابتة حتى الآن
+                                                </td>
+                                            </tr>
+                                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </main>
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="/js/main.js"></script>
+
+
+
+        <script>
+            function showToast(message, isError = false) {
+                window.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+
+                const messagesDiv = document.getElementById('formMessages');
+                if (!messagesDiv) return;
+
+                messagesDiv.innerHTML = message;
+                messagesDiv.style.background = isError ? '#dc3545' : '#10B981';
+
+                messagesDiv.classList.add('show');
+
+                setTimeout(() => {
+                    messagesDiv.classList.remove('show');
+                }, 1500);
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                // Delete Payment
+                document.querySelectorAll('.delete-payment-form').forEach(form => {
+                    form.addEventListener('submit', async function (e) {
+                        e.preventDefault();
+
+                        if (!confirm('هل أنت متأكد من حذف هذه الدفعة؟')) {
+                            return;
+                        }
+
+                        try {
+                            const response = await fetch(form.action, {
+                                method: 'POST'
+                            });
+
+                            const result = await response.json();
+
+                            if (result.success) {
+                                showToast(result.message);
+
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 800);
+                            } else {
+                                showToast(result.message, true);
+                            }
+
+                        } catch (error) {
+                            console.error(error);
+                            showToast('حدث خطأ', true);
+                        }
+                    });
+                });
+            });
+
+
+
+            async function deleteExpense(id) {
+                if (!confirm('هل تريد حذف المصروف؟')) return;
+
+                try {
+                    const res = await fetch(`/deleteFixedExpense/${id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    const data = await res.json();
+                    showToast(data.msg, !data.success);
+
+                    if (data.success) {
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    }
+
+                } catch (error) {
+                    messagesDiv.innerHTML = 'حدث خطأ';
+                    showToast();
+                }
+            }
+        </script>
+
+</body>
+
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= page %>
+    </title>
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        .payment-toolbar {
+            margin: 24px 0;
+        }
+
+        .stats-grid {
+            margin-top: 20px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('../../views/components/sidebar.ejs') %>
+        <main class="main-content" style="margin-top: 20px">
+            <div class="page-actions toolbar">
+                <h2>
+                    <%= page %>
+                </h2>
+
+                <div class="d-flex gap-2">
+                    <a href="/addPaymentPage" class="action-btn primary">
+                        <i class="fa-solid fa-circle-plus"></i>
+                        إضافة دفعة
+                    </a>
+
+                    <a href="/paymentsReport?from=<%= filters?.from || '' %>&to=<%= filters?.to || '' %>"
+                        class="action-btn secondary">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        تقرير المدفوعات
+                    </a>
+                </div>
+            </div>
+            <div id="formMessages" class="formMessages" style="background-color: green;"></div>
+            <div class="toolbar payment-toolbar">
+                <form action="/payments" method="GET" class="row w-100 g-3 align-items-end">
+
+                    <div class="col-md-4">
+                        <label class="form-label mb-2">من تاريخ</label>
+                        <input type="date" name="from" value="<%= filters?.from || '' %>" class="custom-input">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label mb-2">إلى تاريخ</label>
+                        <input type="date" name="to" value="<%= filters?.to || '' %>" class="custom-input">
+                    </div>
+
+                    <div class="col-md-2">
+                        <button type="submit" class="action-btn primary w-100">
+                            تصفية
+                        </button>
+                    </div>
+
+                    <div class="col-md-2">
+                        <a href="/payments" class="action-btn secondary w-100">
+                            الكل
+                        </a>
+                    </div>
+
+                </form>
+            </div>
+
+
+            <div class="orders-card">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>التاريخ</th>
+                            <th>المورد</th>
+                            <th>المبلغ</th>
+                            <th>طريقة الدفع</th>
+                            <th>من</th>
+                            <th>إلى</th>
+                            <th>ملاحظات</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <% if (payments.length> 0) { %>
+                            <% payments.forEach((payment, i)=> { %>
+                                <tr style="text-align: center;" class="payment-row"
+                                    data-payment="<%= payment.paymentMethod %>"
+                                    data-supplier="<%= payment.supplier?.name || '' %>">
+
+                                    <td>
+                                        <%= i + 1 %>
+                                    </td>
+
+                                    <td>
+                                        <%= dayjs(payment.createdAt).format('YYYY-MM-DD') %>
+                                    </td>
+
+                                    <td>
+                                        <%= payment.supplier?.name || '-' %>
+                                    </td>
+
+                                    <td style="color: var(--green); font-weight:700;">
+                                        <%= payment.amount.toFixed(2) %> ₪
+                                    </td>
+
+                                    <td>
+                                        <% if (payment.paymentMethod==='cash' ) { %>
+                                            <span class="badge-status badge-success">كاش</span>
+                                            <% } else if(payment.paymentMethod==='bank_transfer' ) { %>
+                                                <span class="badge-status badge-tran">تحويل بنكي</span>
+                                                <% } else if(payment.paymentMethod==='trans' ) { %>
+                                                    <span class="badge-status badge-tran">تكاليف نقل</span>
+                                                    <% } else if(payment.paymentMethod==='other' ) { %>
+                                                        <span class="badge-status badge-tran">أخرى</span>
+                                                        <% } else if(payment.paymentMethod==='staf' ) { %>
+                                                            <span class="badge-status badge-tran">بضاعة</span>
+                                                            <% } %>
+                                    </td>
+
+
+                                    <td>
+                                        <%= payment.senderAccountName || '-' %>
+                                    </td>
+                                    <td>
+                                        <%= payment.receiverAccountName || '-' %>
+                                    </td>
+                                    <td>
+                                        <%= payment.notes || '-' %>
+                                    </td>
+
+                                    <td>
+                                        <div class="action-btns">
+                                            <a href="/editPaymentPage/<%= payment._id %>"
+                                                class="btn-icon btn-icon--assent">
+                                                <i class="fa-solid fa-pen"></i>
+                                            </a>
+                                            <form action="/deletePayment/<%= payment._id %>" method="POST"
+                                                class="delete-payment-form">
+                                                <button type="submit" class="btn-icon btn-icon--red">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+
+                                </tr>
+                                <% }) %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="9" style="text-align:center;color:#94A3B8;">
+                                                لا توجد مدفوعات حتى الآن
+                                            </td>
+                                        </tr>
+                                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="/js/main.js"></script>
+
+        <% if (msg) { %>
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    showToast("<%= msg %>");
+                });
+            </script>
+            <% } %>
+
+                <script>
+                    function showToast(message, isError = false) {
+                        window.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+
+                        const messagesDiv = document.getElementById('formMessages');
+                        if (!messagesDiv) return;
+
+                        messagesDiv.innerHTML = message;
+                        messagesDiv.style.background = isError ? '#dc3545' : '#10B981';
+
+                        messagesDiv.classList.add('show');
+
+                        setTimeout(() => {
+                            messagesDiv.classList.remove('show');
+                        }, 1500);
+                    }
+
+                    document.addEventListener('DOMContentLoaded', function () {
+                        // Delete Payment
+                        document.querySelectorAll('.delete-payment-form').forEach(form => {
+                            form.addEventListener('submit', async function (e) {
+                                e.preventDefault();
+
+                                if (!confirm('هل أنت متأكد من حذف هذه الدفعة؟')) {
+                                    return;
+                                }
+
+                                try {
+                                    const response = await fetch(form.action, {
+                                        method: 'POST'
+                                    });
+
+                                    const result = await response.json();
+
+                                    if (result.success) {
+                                        showToast(result.message);
+
+                                        setTimeout(() => {
+                                            window.location.reload();
+                                        }, 800);
+                                    } else {
+                                        showToast(result.message, true);
+                                    }
+
+                                } catch (error) {
+                                    console.error(error);
+                                    showToast('حدث خطأ', true);
+                                }
+                            });
+                        });
+                    });
+
+
+
+
+
+                </script>
+
+</body>
+
+</html>

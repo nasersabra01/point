@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= page %>
+    </title>
+
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+
+<body>
+    <%- include('../../views/components/sidebar.ejs') %>
+
+        <main class="main-content" style="margin-top:20px;">
+            <div class="page-actions toolbar">
+                <h2>تقرير فترة</h2>
+                <a href="/printProductsAnalytics?from=" class="action-btn secondary">
+                    طباعة التقرير
+                </a>
+            </div>
+
+            <div class="orders-card mb-4">
+                <form action="/periodReport" method="GET">
+                    <div class="row g-3">
+
+                        <div class="col-md-4">
+                            <label class="form-label">من تاريخ</label>
+                            <input type="date" name="from" class="custom-input" value="<%= selectedStartDate %>">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">إلى تاريخ</label>
+                            <input type="date" name="to" class="custom-input" value="<%= selectedEndDate %>">
+                        </div>
+
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="action-btn primary w-100">
+                                بحث
+                            </button>
+                        </div>
+
+                    </div>
+                </form>
+
+                <div id="formMessages" class="formMessages" style="background-color: green;"></div>
+            </div>
+            <div class="orders-card">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>من</th>
+                            <th>إلى</th>
+                            <th>عدد الأيام</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr style="text-align:center;">
+                            <td>
+                                <%= selectedStartDate %>
+                            </td>
+                            <td>
+                            <%= selectedEndDate %>
+                            </td>
+                            <td>
+                            <%= shifts.length %>
+                            </td>
+                            <td>
+                                <a href="/piredView/<%= selectedStartDate %>/<%= selectedEndDate %>" class="btn-icon" title="عرض تفاصيل الفترة">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

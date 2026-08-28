@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= page %>
+    </title>
+
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/addProduct.css">
+</head>
+
+<body>
+    <%- include('../../views/components/sidebar.ejs') %>
+
+        <main class="main-content">
+            <div class="form-card mb-4" style="margin-top: 30px;">
+                <div class="form-header">
+                    <h3>إضافة فاتورة</h3>
+
+                    <a href="/dayPage/<%= shift._id %>" class="action-btn secondary">
+                        <i class="fa-solid fa-arrow-right"></i>
+                        رجوع
+                    </a>
+                </div>
+
+                <div id="formMessages" class="formMessages"></div>
+
+                <div class="tab-content">
+
+                    <div class="tab-pane fade show active" role="tabpanel" aria-labelledby="regular-tab">
+                        <form id="invoiceForm" action="/storeInvoice/<%= shift._id %>" method="post">
+                            <div class="row g-3">
+
+                                <div class="col-md-3">
+                                    <label class="form-label">رقم الفاتورة</label>
+                                    <input type="text" class="custom-input" placeholder="توليد تلقائي" name="invoiceNo"
+                                        readonly>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">رقم فاتورة المورد</label>
+                                    <input type="text" name="supplierInvoiceNo" class="custom-input"
+                                        placeholder="رقم فاتورة المورد">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">المورد <span class="req">*</span></label>
+                                    <select name="supplier" class="custom-input">
+                                        <% supplier.forEach(supp=> { %>
+                                            <option style="color: black;" value="<%= supp._id %>">
+                                                <%= supp.name %>
+                                            </option>
+                                            <% }) %>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">نوع الفاتورة <span class="req">*</span></label>
+                                    <select name="invoiceType" id="invoiceType" class="custom-input">
+                                        <option style="color: black;" value="كمسيون">فاتورة كمسيون</option>
+                                        <option style="color: black;" value="شراء">فاتورة شراء</option>
+                                    </select>
+                                </div>
+
+
+                                <div class="col-md-4 commissionFields" style="display:none;">
+                                    <label class="form-label">تكلفة النقل</label>
+                                    <input type="number" step="0.01" name="transportCost" class="custom-input"
+                                        placeholder="أدخل تكلفة النقل">
+                                </div>
+
+                                <div class="col-md-4 commissionFields" style="display:none;">
+                                    <label class="form-label">مسحوبات</label>
+                                    <select name="taken" id="taken" class="custom-input">
+                                        <option style="color: black;">لا يوجد</option>
+                                        <option style="color: black;" value="بضاعة">بضاعة</option>
+                                        <option style="color: black;" value="نقدي">نقدي</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4 commissionFields" style="display:none;">
+                                    <label class="form-label">قيمة المسحوبات</label>
+                                    <input type="number" step="0.01" name="takenVal" class="custom-input"
+                                        placeholder="أدخل قيمة المسحوبات">
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">ملاحظات (اختياري)</label>
+                                    <textarea rows="5" class="custom-input textarea" name="notes"
+                                        placeholder="اكتب أي ملاحظات"></textarea>
+                                </div>
+
+
+                                <div class="col-12">
+                                    <button type="submit" class="save-btn action-btn primary">حفظ الفاتورة</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+
+                </div>
+            </div>
+
+        </main>
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="/js/main.js"></script>
+        <script>
+            function showToast() {
+                window.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+                const t = document.getElementById('formMessages');
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 3000);
+            }
+
+            const form = document.getElementById('invoiceForm');
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const messagesDiv = document.getElementById('formMessages');
+                messagesDiv.innerHTML = '';
+
+                const fd = new FormData(form);
+                const payload = {};
+                fd.forEach((v, k) => payload[k] = v);
+
+                try {
+                    const res = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    const data = await res.json();
+                    if (!data.success) {
+                        messagesDiv.innerHTML = data.msg || data.message || 'حدث خطأ';
+                        showToast();
+                        return;
+                    }
+                    window.location.href = data.redirect;
+                } catch (err) {
+                    console.error("FRONT ERROR:", err);
+                    messagesDiv.innerHTML = err.message;
+                    showToast();
+                }
+            });
+
+
+
+            const invoiceType = document.getElementById("invoiceType");
+            const commissionFields = document.querySelectorAll(".commissionFields");
+            console.log(commissionFields);
+            const transportInput = document.querySelector('[name="transportCost"]');
+
+            function toggleTransport() {
+                commissionFields.forEach(field => {
+                    field.style.display =
+                        invoiceType.value === "كمسيون" ? "block" : "none";
+                });
+            }
+
+            invoiceType.addEventListener("change", toggleTransport);
+
+            toggleTransport();
+
+
+
+        </script>
+
+
+</body>
+
+</html>

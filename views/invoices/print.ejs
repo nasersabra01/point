@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>فاتورة كمسيون</title>
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css"> <!-- fontawesome css file -->
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css"> <!-- bootstrap css min file -->
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+
+        }
+
+        body {
+            direction: rtl;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 30px;
+
+        }
+
+        .invoice {
+            max-width: 1000px;
+            margin: auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, .08);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #2d2929;
+            padding-bottom: 3px;
+        }
+
+        .company h4 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .company p,
+        .timeDay {
+            color: #777;
+            margin-bottom: 4px;
+        }
+
+        .timeDay strong {
+            color: #000;
+            font-weight: bolder;
+        }
+
+        .invoice-title {
+            text-align: center;
+
+        }
+
+        .invoice-title h2 {
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .invoice-title small {
+            color: #2c3e50;
+        }
+
+        .invoice-info {
+            display: flex;
+            justify-content: space-between;
+            /* margin-bottom: 30px; */
+            gap: 30px;
+        }
+
+        .info-box {
+            width: 48%;
+            padding: 0px 20px;
+            border-radius: 10px;
+            border: 1px solid #404040;
+        }
+
+        .info-box p {
+            margin: 10px 0;
+            color: #444;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #220946;
+            color: white;
+            padding: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        td {
+            border: 1px solid #393737;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .summary {
+            width: 300px;
+            margin-right: auto;
+            border: 1px solid #323232;
+            padding: 12px;
+            background: #fafafa;
+            border-radius: 8px;
+        }
+
+        .notes-card {
+            padding: 12px 14px;
+            border: 1px solid #d6d6d6;
+            border-radius: 8px;
+            background: #fcfcfc;
+            width: 500px;
+        }
+
+        .notes-card h4 {
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 15px;
+        }
+
+        .notes-card p {
+            color: #444;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 16px;
+            border-bottom: 1px solid #1b1b1b5f;
+        }
+
+        .summary-row.total {
+            font-size: 20px;
+            font-weight: bold;
+            color: #27ae60;
+
+        }
+
+        .alert {
+            padding: 10px;
+            font-size: 14px;
+            color: #444;
+            text-align: center;
+        }
+
+        .backbtn {
+            width: 100px;
+            text-align: center;
+            text-decoration: none;
+            background-color: #1b043b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            padding: 10px;
+            transition: 0.3s;
+        }
+
+        .backbtn:hover {
+            opacity: 0.7;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .invoice {
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .backbtn {
+                display: none;
+            }
+
+            th {
+                border: 1px solid #242424;
+                font-size: 14px;
+                font-weight: bolder;
+                color: #000;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <a href="/invoiceDetailes/<%= invoice._id %>" class="action-btn primary backbtn">
+        <i class="fa-solid fa-arrow-right"></i>
+        رجوع
+    </a>
+
+    <div class="invoice">
+
+        <div class="header">
+            <div class="company">
+                <h4>شركة النصر (المتربيعي)</h4>
+                <p>لتجارة الخضروات والفواكه</p>
+                <p>هاتف: 0597077810</p>
+            </div>
+
+            <div class="invoice-title">
+                <% if (invoice.invoiceType==='شراء' ) { %>
+                    <h2>فاتورة شراء</h2>
+                    <% } %>
+                        <% if (invoice.invoiceType==='كمسيون' ) { %>
+                            <h2>فاتورة كمسيون</h2>
+                            <% } %>
+                                <small>
+                                    <%= invoice.invoiceNo %>
+                                </small>
+            </div>
+
+            <div class="timeDay">
+                <p><strong>تاريخ الطباعة:</strong>
+                    <%= dayjs(new Date()).format('D/M/YYYY') %>
+                </p>
+                <p><strong>وقت الطباعة :</strong>
+                    <%= dayjs(new Date()).format('hh:mm:ss') %>
+                </p>
+            </div>
+        </div>
+
+        <div class="invoice-info">
+            <div class="info-box">
+                <p><strong>اسم المورد : </strong>
+                    <%= invoice.supplier.name %>
+                </p>
+            </div>
+            <div class="info-box">
+                <div>
+                    <p><strong>تاريخ الفاتورة:</strong>
+                        <%= dayjs(invoice.day.startTime).format('DD/MM/YYYY') %>
+                    </p>
+                </div>
+            </div>
+
+
+
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <!-- <th>#</th> -->
+                    <% if (invoice.invoiceType==='شراء' ) { %>
+                        <th>الصنف</th>
+                        <th>الوزن / العدد</th>
+                        <th>سعر الشراء</th>
+                        <th>اجمالي شراء</th>
+                        <th>سعر البيع</th>
+                        <th>ربح</th>
+                        <% } %>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (invoice.invoiceType==='شراء' ) { %>
+                    <% if (products?.length> 0 ) { %>
+                        <% (products || []).forEach((pr, i)=> { %>
+                            <tr style="text-align: center;" style="text-align:center;">
+                                <td style="color:var(--blue);font-weight:600">
+                                    <%= pr.productName %>
+                                </td>
+
+                                <td style="color:var(--text-muted)">
+                                    <%= pr.mainWeight.toFixed(2) %>
+                                        <%= pr.unit %>
+                                </td>
+
+                                <td style="color:var(--text-muted)">
+                                    <%= pr.purchaseData.wholesalePrice.toFixed(2) %> ₪
+                                </td>
+
+                                <td style="color:var(--text-muted)">
+                                    <%= pr.purchaseData.totalCost.toFixed(2) %> ₪
+                                </td>
+
+                                <td style="color:var(--text-muted)">
+                                    <%= pr.avarageSePrice.toFixed(2) %> ₪
+                                </td>
+                                <td style="color:var(--text-muted)">
+                                    <%= (pr.avarageSePrice - pr.purchaseData.wholesalePrice).toFixed(2) %> ₪
+                                </td>
+
+
+
+                            </tr>
+
+                            <% }) %>
+
+
+
+                                <% } %>
+                                    <% } %>
+                                        <% if (products.length <=0 ) { %>
+                                            <tr style="text-align: center;">
+                                                <td colspan="9" style="color: #8e8c8c;">
+                                                    لم يتم إضافة أي أصناف للفاتورة بعد.
+                                                </td>
+                                            </tr>
+                                            <% } %>
+
+                                                <% if (invoice.invoiceType==='كمسيون' ) { %>
+
+                                                    <% products.forEach(product=> { %>
+
+
+                                                        <table class="mt-2 mb-4">
+                                                            <thead>
+                                                                <tr>
+                                                                    <td style="text-align: start; padding: 0 10px;"
+                                                                        colspan="2">اسم الصنف: <%= product.productName
+                                                                            %>
+                                                                    </td>
+                                                                    <td style="text-align: end; padding: 0 10px;"
+                                                                        colspan="2">الكمية المستلمة: <%=
+                                                                            product.mainWeight.toFixed(2) %>
+                                                                            <%= product.unit %>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>الصنف</th>
+                                                                    <th>الكمية</th>
+                                                                    <th>السعر</th>
+                                                                    <th>الإجمالي</th>
+                                                                </tr>
+                                                            </thead>
+
+                                                            <tbody>
+                                                                <% const productSales=saleStatmentt.filter( sale=>
+                                                                    sale.product.toString() ===
+                                                                    product._id.toString()
+                                                                    );
+                                                                    %>
+
+                                                                    <% if (productSales.length> 0) { %>
+                                                                        <% const groupedSales=productSales.reduce((acc,
+                                                                            sale)=> {
+                                                                            const key =
+                                                                            Number(sale.price).toFixed(2);
+                                                                            if (!acc[key]) {
+                                                                            acc[key] = { price:
+                                                                            Number(sale.price),
+                                                                            quantity: 0, total: 0 };
+                                                                            }
+                                                                            acc[key].quantity +=
+                                                                            Number(sale.quantity ||
+                                                                            0);
+                                                                            acc[key].total +=
+                                                                            Number(sale.total || 0);
+                                                                            return acc;
+                                                                            }, {});
+                                                                            %>
+                                                                            <%
+                                                                                Object.values(groupedSales).forEach(group=>
+                                                                                { %>
+                                                                                <tr>
+                                                                                    <td>
+                                                                                        <%= product.productName %>
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        <%= group.quantity.toFixed(2) %>
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        <%= group.price.toFixed(2) %>
+                                                                                            ₪
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        <%= group.total.toFixed(2) %>
+                                                                                            ₪
+                                                                                    </td>
+                                                                                </tr>
+                                                                                <% }) %>
+                                                                                    <tr>
+                                                                                        <td><strong>إجمالي</strong>
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <%= product.soldWeight.toFixed(2)
+                                                                                                %>
+                                                                                        </td>
+                                                                                        <td>--</td>
+
+                                                                                        <td>
+                                                                                            <%= product.sales.toFixed(2)
+                                                                                                %>
+                                                                                                ₪
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <% } else { %>
+                                                                                        <tr>
+                                                                                            <td colspan="3">
+                                                                                                لا توجد
+                                                                                                مبيعات لهذا
+                                                                                                الصنف
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <% } %>
+                                                            </tbody>
+                                                        </table>
+
+                                                        <% }) %>
+
+                                                            <% } %>
+
+
+            </tbody>
+        </table>
+
+
+        <div class="d-flex">
+            <div class="notes-card">
+                <h4>الملاحظات</h4>
+                <p>
+                    <%= invoice.notes %>
+                </p>
+            </div>
+
+            <div class="summary">
+                <% if (invoice.invoiceType==='كمسيون' ) { %>
+                    <div class="summary-row">
+                        <span>إجمالي المبيعات</span>
+                        <span>
+                            <%= totalSales.toFixed(2) %> ₪
+                        </span>
+                    </div>
+                    <div class="summary-row">
+                        <span> تكلفة نقل</span>
+                        <span>
+                            <%= invoice.transportCost.toFixed(2) %> ₪
+                        </span>
+                    </div>
+                    <div class="summary-row">
+                        <span>كمسيون</span>
+                        <span>
+                            <%= totalCommission.toFixed(2) %> ₪
+                        </span>
+                    </div>
+                    <div class="summary-row">
+                        <span>المسحوبات <%= invoice.taken || '' %></span>
+                        <span>
+                            <%= Number(invoice.takenVal || 0).toFixed(2) %> ₪
+                        </span>
+                    </div>
+
+                    <% } %>
+
+                        <div class="summary-row total">
+                            <span>إجمالي الفاتورة</span>
+                            <span>
+                                <%= invoice.total.toFixed(2) %> ₪
+                            </span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>مبيعات</span>
+                            <span>
+                                <%= totalSales.toFixed(2) %> ₪
+                            </span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>صافي ربح</span>
+                            <span>
+                                <%= totalProfit.toFixed(2) %> ₪
+                            </span>
+                        </div>
+
+            </div>
+        </div>
+        <hr>
+
+        <% if (invoice.invoiceType==='كمسيون' ) { %>
+            <p class="alert">عدم إمكانية المراجعة بعد مرور يومين - 48 ساعة - من إستلام الفاتورة</p>
+            <% } %>
+
+
+
+    </div>
+
+    <script>
+        window.onload = () => window.print();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= page %>
+    </title>
+
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/addProduct.css">
+
+</head>
+
+<body>
+    <%- include('../../views/components/sidebar.ejs') %>
+
+        <main class="main-content">
+            <div class="form-card" style="margin-top: 30px;">
+                <div class="form-header">
+                    <h3>تعديل المصروف</h3>
+                </div>
+
+                <div id="formMessages" class="formMessages"></div>
+                <form id="editExpenseForm" action="/updateExpenses/<%= expense._id %>">
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label class="form-label">نوع المصروف<span class="req">*</span></label>
+                            <select name="expType" class="custom-input">
+                                <option value="" disabled>اختر نوع المصروف</option>
+                                <option value="مزليك" <%= expense.expType === 'مزليك' ? 'selected' : '' %>>مزليك</option>
+                                <option value="تكاليف نقل" <%= expense.expType === 'تكاليف نقل' ? 'selected' : '' %>>تكاليف نقل</option>
+                                <option value="سولار سيارة" <%= expense.expType === 'سولار سيارة' ? 'selected' : '' %>>سولار سيارة</option>
+                                <option value="نايلون" <%= expense.expType === 'نايلون' ? 'selected' : '' %>>نايلون</option>
+                                <option value="أكل" <%= expense.expType === 'أكل' ? 'selected' : '' %>>أكل</option>
+                                <option value="نقدي" <%= expense.expType === 'نقدي' ? 'selected' : '' %>>نقدي</option>
+                                <option value="كهرباء" <%= expense.expType === 'كهرباء' ? 'selected' : '' %>>كهرباء</option>
+                                <option value="نت" <%= expense.expType === 'نت' ? 'selected' : '' %>>نت</option>
+                                <option value="أخرى" <%= expense.expType === 'أخرى' ? 'selected' : '' %>>أخرى</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">المبلغ<span class="req">*</span></label>
+                            <input type="number" step="0.01" class="custom-input" name="amount" value="<%= expense.amount %>">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">تفاصيل المصروف</label>
+                            <textarea rows="5" class="custom-input textarea" name="details" placeholder="اكتب أي ملاحظات"><%= expense.details || '' %></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <button type="submit" class="save-btn action-btn primary">
+                                حفظ التعديلات
+                            </button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </main>
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="/js/main.js"></script>
+        <script>
+            function showToast() {
+                window.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+                const t = document.getElementById('formMessages');
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 3000);
+            }
+
+            const form = document.getElementById('editExpenseForm');
+            const messagesDiv = document.getElementById('formMessages');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                messagesDiv.innerHTML = '';
+
+                const fd = new FormData(form);
+                const payload = {};
+                fd.forEach((v, k) => payload[k] = v);
+
+                try {
+                    const res = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    const data = await res.json();
+                    if (!data.success) {
+                        messagesDiv.innerHTML = data.msg;
+                        showToast();
+                        return;
+                    }
+
+                    window.location.href = data.redirect;
+                } catch (err) {
+                    console.error(err);
+                    messagesDiv.innerHTML = 'حصل خطأ في الخادم';
+                    showToast();
+                }
+            });
+        </script>
+</body>
+
+</html>

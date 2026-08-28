@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>تقرير المدفوعات</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+        }
+
+        body {
+            direction: rtl;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 30px;
+        }
+
+        .invoice {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, .08);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eee;
+        }
+
+        .company h4 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .company p {
+            color: #777;
+        }
+
+        .invoice-title {
+            text-align: center;
+        }
+
+        .invoice-title h2 {
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .timeDay {
+            color: #777;
+        }
+
+        .info-box {
+            background: #fafafa;
+            border-radius: 10px;
+            border: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        .info-box p {
+            margin: 8px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #220946;
+            color: white;
+            text-align: center;
+        }
+
+        td {
+            border: 1px solid #ddd;
+            padding: 14px;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .summary {
+            width: 400px;
+            margin-right: auto;
+            margin-top: 30px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .summary-row.total {
+            font-size: 20px;
+            font-weight: bold;
+            color: #27ae60;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+        }
+
+        .backbtn {
+            width: 100px;
+            text-align: center;
+            text-decoration: none;
+            background-color: #1b043b;
+            color: white;
+            border-radius: 8px;
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            padding: 10px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .invoice {
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .backbtn {
+                display: none;
+            }
+
+            th {
+                color: black;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="/payments" class="backbtn">رجوع</a>
+
+    <div class="invoice">
+
+        <div class="header">
+            <div class="company">
+                <h4>شركة النصر (المتربيعي)</h4>
+                <p>لتجارة الخضروات والفواكه</p>
+                <p>هاتف: 0597077810</p>
+            </div>
+
+            <div class="invoice-title">
+                <h2>تقرير المدفوعات</h2>
+                <small>Payment Report</small>
+            </div>
+
+            <div class="timeDay">
+                <p><strong>التاريخ:</strong>
+                    <%= printDate %>
+                </p>
+                <p><strong>الوقت:</strong>
+                    <%= printTime %>
+                </p>
+            </div>
+        </div>
+
+<div class="info-box">
+    <div class="d-flex justify-content-between">
+        <p><strong>عدد الدفعات:</strong> <%= paymentsCount %></p>
+
+        <p>
+            <strong>الفترة:</strong>
+            من <%= from || 'البداية' %>
+            إلى <%= to || 'الآن' %>
+        </p>
+    </div>
+</div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>التاريخ</th>
+                    <th>المورد</th>
+                    <th>المبلغ</th>
+                    <th>طريقة الدفع</th>
+                    <th>ملاحظات</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <% if (payments.length> 0) { %>
+                    <% payments.forEach((payment, i)=> { %>
+                        <tr>
+                            <td>
+                                <%= i + 1 %>
+                            </td>
+                            <td>
+                                <%= new Date(payment.createdAt).toLocaleDateString('ar-EG') %>
+                            </td>
+                            <td>
+                                <%= payment.supplier?.name || '-' %>
+                            </td>
+                            <td>
+                                <%= payment.amount.toFixed(2) %> ₪
+                            </td>
+                            <td>
+                                <%= payment.paymentMethod==='cash' ? 'كاش' : 'تحويل بنكي' %>
+                            </td>
+                            <td>
+                                <%= payment.notes || '-' %>
+                            </td>
+                        </tr>
+                        <% }) %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="6">لا توجد مدفوعات</td>
+                                </tr>
+                                <% } %>
+            </tbody>
+        </table>
+
+        <div class="summary">
+            <div class="summary-row">
+                <span>إجمالي الكاش</span>
+                <span>
+                    <%= stats.totalCash.toFixed(2) %> ₪
+                </span>
+            </div>
+
+            <div class="summary-row">
+                <span>إجمالي التحويل</span>
+                <span>
+                    <%= stats.totalBank.toFixed(2) %> ₪
+                </span>
+            </div>
+
+            <div class="summary-row total">
+                <span>إجمالي المدفوعات</span>
+                <span>
+                    <%= stats.totalPayments.toFixed(2) %> ₪
+                </span>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

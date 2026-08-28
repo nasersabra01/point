@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= page %>
+    </title>
+
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css"> <!-- fontawesome css file -->
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css"> <!-- bootstrap css min file -->
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        .unt {
+            font-size: 10px;
+        }
+
+        .orders-card div {
+            border-bottom: 1px solid #eeeeee0e;
+            padding-bottom: 2px;
+        }
+    </style>
+
+</head>
+
+
+
+<body>
+    <!-- sidebar -->
+    <%- include('../components/sidebar.ejs') %>
+
+        <main class="main-content" style="margin-top: 20px">
+
+            <div class="toolbar">
+                <h3>تفاصيل الصنف - <%= product.productName %>
+                </h3>
+
+                <div class="d-flex gap-2">
+
+                    <a href="/productReport/<%= product._id %>" class="action-btn primary">
+                        تصدير <i class="fa-solid fa-file-pdf"></i>
+                    </a>
+                </div>
+
+            </div>
+
+            <div id="formMessages" class="formMessages" style="background-color: green;">
+            </div>
+
+
+
+            <div class="row g-3 mb-4">
+
+                <div class="col-md-3">
+                    <div class="stat-card amber">
+                        <% if (invoice.invoiceType==='شراء' ) { %>
+                            <div class="stat-label">إجمالي التكلفة</div>
+                            <div class="stat-value">
+                                <%= product.purchaseData.totalCost.toFixed(2) %> ₪
+                            </div>
+                            <% } %>
+                                <% if (invoice.invoiceType==='كمسيون' ) { %>
+                                    <div class="stat-label">نسبة العمولة</div>
+                                    <div class="stat-value">
+                                        <%= product.commissionData.commissionRate.toFixed(2) %> %
+                                    </div>
+                                    <% } %>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="stat-card blue d-flex justify-content-between">
+                        <div>
+                            <div class="stat-label">المبيعات</div>
+                            <div class="stat-value">
+                                <%= product.sales.toFixed(2) %> ₪
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <% if (invoice.invoiceType==='كمسيون' ) { %>
+                    <div class="col-md-3">
+                        <div class="stat-card blue d-flex justify-content-between">
+                            <div>
+                                <div class="stat-label">مستحق المورد</div>
+                                <div class="stat-value">
+                                    <%= product.commissionData.supplierAmount.toFixed(2) %> ₪
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card blue d-flex justify-content-between">
+                            <div>
+                                <div class="stat-label">مستحق العمولة</div>
+                                <div class="stat-value">
+                                    <%= product.commissionData.commissionAmount.toFixed(2) %> ₪
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <% } %>
+
+                    
+
+                        <% if (invoice.invoiceType==='شراء' ) { %>
+                            <div class="col-md-6">
+                                <% if (product.profit <=0) { %>
+                                    <div class="stat-card green text-danger">
+                                        <div class="stat-label text-danger">خسارة</div>
+                                        <div class="stat-value">
+                                            <%= product.profit.toFixed(2) %> ₪
+                                        </div>
+                                    </div>
+                                    <% } %>
+                                        <% if (product.profit> 0) { %>
+                                            <div class="stat-card green text-success">
+                                                <div class="stat-label text-success">ربح</div>
+                                                <div class="stat-value">
+                                                    <%= product.profit.toFixed(2) %> ₪
+                                                </div>
+                                            </div>
+                                            <% } %>
+                            </div>
+                            <% } %>
+
+            </div>
+
+            <div class="row g-4">
+
+                <div class="col-lg-4">
+                    <div class="orders-card p-4">
+                        <h5 class="mb-4">تفاصيل عامة</h5>
+
+                        <div class="mb-3 d-flex justify-content-between">
+                            <span>اليوم</span>
+                            <strong>
+                                <%= new Date(invoice.day.startTime).toLocaleDateString('ar-EG', { weekday: 'long' }) %>
+                                    <%= invoice.day.startTime.toLocaleString('ar-EG') %>
+                            </strong>
+                        </div>
+                        <div class="mb-3 d-flex justify-content-between">
+                            <span>اسم الصنف</span>
+                            <strong>
+                                <%= product.productName %>
+                            </strong>
+                        </div>
+
+                        <div class="mb-3 d-flex justify-content-between">
+                            <span>اسم التاجر</span>
+                            <strong>
+                                <%= invoice.supplier %>
+                            </strong>
+                        </div>
+                        <div class="mb-3 d-flex justify-content-between">
+                            <span>نوع البيع</span>
+                            <strong>
+                                <%= invoice.invoiceType %>
+                            </strong>
+                        </div>
+                        <div class="mb-3 d-flex justify-content-between">
+                            <span>الوحدة</span>
+                            <strong>
+                                <%= product.unit %>
+                            </strong>
+                        </div>
+
+
+
+                        <div class="mb-3 d-flex justify-content-between">
+                            <span>حالة البيع</span>
+
+                            <% if (product.saleStatus==='open' ) { %>
+                                <span class="badge-status badge-success">مفتوح</span>
+                                <% } else { %>
+                                    <span class="badge-status badge-cancel">مغلق</span>
+                                    <% } %>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <span>حالة الوزن</span>
+                            <% if (product.weightStatus==='متطابق' ) { %>
+                                <span class="badge-status badge-success">
+                                    <%= product.weightStatus %>
+                                </span>
+                                <% } %>
+                                    <% if (product.weightStatus==='نقص' ) { %>
+                                        <span class="badge-status badge-cancel">
+                                            <%= product.weightStatus %> - <%= product.loseWeight.toFixed(2) %>
+                                                    <%= product.unit %>
+                                        </span>
+                                        <% } %>
+                                            <% if (product.weightStatus==="لم يبع" ) { %>
+                                                <span class="badge-status badge-tran">
+                                                    <%= product.weightStatus %>
+                                                </span>
+                                                <% } %>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="orders-card p-4">
+                        <h5 class="mb-4">تفاصيل الوزن و التكلفة</h5>
+                        <div class="mb-3 d-flex justify-content-between">
+                            <% if (invoice.invoiceType==='شراء' ) { %>
+                                <span>سعر الجملة</span>
+                                <strong>
+                                    <%= product.purchaseData.wholesalePrice.toFixed(2) %> ₪
+
+                                </strong>
+                                <% } %>
+                                    <% if (invoice.invoiceType==='كمسيون' ) { %>
+                                        <span>نسبة العمولة</span>
+                                        <strong>
+                                            <%= product.commissionData.commissionRate.toFixed(2) %> %
+                                        </strong>
+                                        <% } %>
+                        </div>
+                        <div class="mb-3 d-flex justify-content-between">
+                            <span>تكلفة نقل</span>
+                            <strong>0
+                            </strong>
+                        </div>
+                        <div class="mb-3 d-flex justify-content-between">
+                            <span>مصروفات أخرى</span>
+                            <strong>
+                                0
+                            </strong>
+                        </div>
+                        <div class="mb-3 d-flex justify-content-between">
+                            <span>إجمالي تكلفة الوحدة</span>
+                            <strong>
+                                <%= product.purchaseData.wholesalePrice.toFixed(2) %> ₪
+                            </strong>
+                        </div>
+                        <div class="mb-3 d-flex justify-content-between">
+                            <span>الوزن/العدد الأساسي</span>
+                            <strong>
+                                <%= product.mainWeight.toFixed(2) %>
+                                    <%= product.unit %>
+                            </strong>
+                        </div>
+                        <div class="mb-3 d-flex justify-content-between">
+                            <span>الوزن/العدد المخصوم</span>
+                            <strong>
+                                0 <%= product.unit %>
+                            </strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>إجمالي التكلفة</span>
+                            <strong>
+                                <%= product.purchaseData.totalCost.toFixed(2) %> ₪
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-lg-4">
+                    <div class="orders-card p-4">
+                        <h5 class="mb-4">تفاصيل البيع</h5>
+                        <div class="mb-3 d-flex justify-content-between">
+                            <span>الوزن بعد الخصم</span>
+                            <strong>
+                                <%= product.mainWeight.toFixed(2) %>
+                                    <%= product.unit %>
+                            </strong>
+                        </div>
+                        <div class="mb-3 d-flex justify-content-between">
+                            <span>الوزن المباع</span>
+                            <strong>
+                                <%= product.soldWeight.toFixed(2) %>
+                                    <%= product.unit %>
+                            </strong>
+                        </div>
+                        <div class="mb-3 d-flex justify-content-between">
+                            <span>الوزن المتبقي</span>
+                            <strong>
+                                <%= product.remainingWeight.toFixed(2) %>
+                                    <%= product.unit %>
+                            </strong>
+                        </div>
+                        <div class="mb-3 d-flex justify-content-between text-danger">
+                            <span>وزن ناقص</span>
+                            <strong>
+                                <%= product.loseWeight.toFixed(2) %>
+                                    <%= product.unit %>
+                            </strong>
+                        </div>
+                        <div class="mb-3 d-flex justify-content-between">
+                            <span>متوسط سعر البيع</span>
+                            <strong>
+                                <%= product.avarageSePrice.toFixed(2) %> ₪
+                            </strong>
+                        </div>
+                        <div class="mb-3 d-flex justify-content-between">
+                            <span>المبيعات</span>
+                            <strong>
+                                <%= product.sales.toFixed(2) %> ₪
+                            </strong>
+                        </div>
+
+
+                        <% if (invoice.invoiceType==='شراء' ) { %>
+
+                            <% if (product.profit <=0) { %>
+                                <div class="d-flex justify-content-between text-danger">
+                                    <span>خسارة</span>
+                                    <strong>
+                                        <%= product.profit.toFixed(2) %> ₪
+                                    </strong>
+                                </div>
+                                <% } %>
+                                    <% if (product.profit> 0) { %>
+                                        <div class="d-flex justify-content-between text-success">
+                                            <span>ربح</span>
+                                            <strong>
+                                                <%= product.profit.toFixed(2) %> ₪
+                                            </strong>
+                                        </div>
+                                        <% } %>
+                                            <% } %>
+                                                <% if (invoice.invoiceType==='كمسيون' ) { %>
+                                                    <div class="d-flex justify-content-between text-success">
+                                                        <span>مستحق العمولة</span>
+                                                        <strong>
+                                                            <%= product.profit.toFixed(2) %> ₪
+                                                        </strong>
+                                                    </div>
+                                                    <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+
+                <div class="col-md-12">
+                    <div class="stat-card green">
+                        <h4>ملاحظات: </h4>
+                        <div>
+                            <% if (!product.notes) { %>
+                                <span colspan="6" style="color: #8e8c8c;">
+                                    لم يتم إضافة أي ملاحظات.
+                                </span>
+                                <% } %>
+
+                                    <%= product.notes %>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+
+
+
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script> <!-- bootstrap js min.js -->
+        <script src="/js/main.js"></script>
+
+        <script>
+            function showToast() {
+                window.scrollTo({ left: 0, top: 0, behavior: `smooth` });
+                const t = document.getElementById('formMessages');
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 4000);
+            }
+        </script>
+
+        <% if (msg) { %>
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const messagesDiv = document.getElementById('formMessages');
+                    messagesDiv.innerHTML = "<%= msg %>";
+                    showToast();
+                });
+            </script>
+            <% } %>
+</body>
+
+</html>

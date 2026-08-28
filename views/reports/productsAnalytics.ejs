@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= page %>
+    </title>
+
+    <link rel="stylesheet" href="/Libraries/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/Libraries/bootstrap/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+
+<body>
+    <%- include('../../views/components/sidebar.ejs') %>
+
+        <main class="main-content" style="margin-top:20px;">
+            <div class="page-actions toolbar">
+                <h2>تقرير أصناف</h2>
+                <a href="/printProductsAnalytics?from=<%= filters.from || '' %>&to=<%= filters.to || '' %>"
+                    class="action-btn secondary">
+                    طباعة التقرير
+                </a>
+            </div>
+
+            <div class="orders-card mb-4">
+                <form action="/productsAnalytics" method="GET">
+                    <div class="row g-3">
+
+                        <div class="col-md-4">
+                            <label class="form-label">من تاريخ</label>
+                            <input type="date" name="from" class="custom-input" value="<%= filters.from || '' %>">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">إلى تاريخ</label>
+                            <input type="date" name="to" class="custom-input" value="<%= filters.to || '' %>">
+                        </div>
+
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="action-btn primary w-100">
+                                بحث
+                            </button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+            <div class="orders-card">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>الصنف</th>
+                            <th>الوحدة</th>
+                            <th>الكمية</th>
+                            <th>متوسط البيع</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <% if (products.length> 0) { %>
+                            <% products.forEach((product, i)=> { %>
+                                <tr style="text-align:center;">
+                                    <td>
+                                        <%= i + 1 %>
+                                    </td>
+                                    <td>
+                                        <%= product.productName %>
+                                    </td>
+                                    <td>
+                                        <%= product.unit %>
+                                    </td>
+                                    <td>
+                                        <%= product.totalWeight.toFixed(2) %>
+                                    </td>
+                                    <td>
+                                        <%= product.averageSalePrice.toFixed(2) %> ₪
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="8" style="text-align:center;">
+                                                لا توجد بيانات
+                                            </td>
+                                        </tr>
+                                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <script src="/Libraries/bootstrap/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
